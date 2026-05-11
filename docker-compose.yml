@@ -1,7 +1,7 @@
 services:
-  deliver-api:
+  delivery-api:
 
-    container_name: deliver-api
+    container_name: delivery-api
 
     build:
       context: ..
@@ -14,16 +14,16 @@ services:
       - ..:/app
 
     depends_on:
-      - deliver-db
+      - delivery-db
     
     env_file:
       - ../bankend/.env
 
     restart: always
 
-  deliver-db:
+  delivery-db:
 
-    container_name: deliver-db
+    container_name: delivery-db
 
     image: mysql:8.0
 
