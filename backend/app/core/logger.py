@@ -1,5 +1,3 @@
-# core/logger.py
-
 import logging
 
 logging.basicConfig(
@@ -13,8 +11,8 @@ logger = logging.getLogger("delivery_app")
 
 # USE CASE 
                                    
-# from app.core.logger import logger                
-                                                  
-# logger.info("Order created successfully")         
-# logger.error("Payment failed")                    
-# logger.warning("Invalid token attempt")           
+    # from core import logger                
+                                                    
+    # logger.info("Order created successfully")         
+    # logger.error("Payment failed")                    
+    # logger.warning("Invalid token attempt")
