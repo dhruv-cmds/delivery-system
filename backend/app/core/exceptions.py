@@ -52,3 +52,32 @@ class InsufficientBalanceException(Exception):
         )
 
         super().__init__(message)
+
+
+# USE CASE 
+
+    '''routes'''
+    # from core import constants
+    # @app.exception_handler(InsufficientBalanceException)
+    # async def payment_status (request , exc):
+
+    #     return JSONResponse(
+    #         status_code=400,
+    #         content={
+    #             "current_balance": str(exc.current_balance),
+    #             "required_balance": str(exc.required_balance),
+    #             "message": str(exc)
+    #         }
+    #     )
+
+    '''service'''
+    # async def transfer_money(sender, receiver, amount):
+
+    #     if sender.balance < amount:
+
+    #         raise InsufficientBalanceException(
+    #             current_balance=sender.balance,
+    #             required_balance=amount
+    #         )
+
+    #     sender.balance -= amount
