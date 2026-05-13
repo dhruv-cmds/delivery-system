@@ -1,0 +1,27 @@
+from enum import Enum
+
+class UserRole(str, Enum):
+
+    CUSTOMER = "CUSTOMER"
+    DELIVERY_PARTNER = "DELIVERY_PARTNER"
+    ADMIN = "ADMIN"
+
+class OrderStatus(str, Enum):
+
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    PREPARING = "PREPARING"
+    PICKED_UP = "PICKED_UP"
+    DELIVERED = "DELIVERED"
+    REPLACE = "REPLACE"
+    CANCELLED = "CANCELLED"
+
+class PaymentStatus(str, Enum):
+
+    PENDING = "PENDING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    REFUNED = "REFUNED"
+
+MAX_ORDER_TIMES = 20
+MAX_TRANSFER_LIMIT = 50000
