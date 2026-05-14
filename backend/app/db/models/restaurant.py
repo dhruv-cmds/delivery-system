@@ -46,7 +46,7 @@ class Restaurant(Base):
 
     owner_id = Column(
         Integer, 
-        ForeignKey("User.id"),
+        ForeignKey("users.id"),
         nullable=True
 
     )
@@ -74,8 +74,8 @@ class Restaurant(Base):
     #     back_populates="restaurant"
     # )
     
-    # menu_items = relationship(
-    #     "Menu",
-    #     back_populates="restaurant",
-    #     cascade="all, delete-orphan"
-    # )
+    menu_items = relationship(
+        "Menu",
+        back_populates="restaurant",
+        cascade="all, delete-orphan"
+    )
