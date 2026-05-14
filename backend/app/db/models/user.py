@@ -55,9 +55,10 @@ class User(Base):
         nullable=False
     )
 
-    is_active = Column(
+    status = Column(
         String(50), 
-        default="ACTIVE"
+        default="ACTIVE",
+        nullable=False
     )
 
     timestamps = Column(
