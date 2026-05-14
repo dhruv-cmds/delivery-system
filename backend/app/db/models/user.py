@@ -1,7 +1,7 @@
 from sqlalchemy import (
-    Column, 
-    Integer, 
-    String, 
+    Column,
+    Integer,
+    String,
     DateTime
 )
 
@@ -11,62 +11,78 @@ from datetime import datetime
 
 from app.db import Base
 
+
 class User(Base):
 
     __tablename__ = "users"
 
     id = Column(
-        Integer, 
-        primary_key=True, 
+        Integer,
+        primary_key=True,
         index=True
     )
 
     username = Column(
-        String(100), 
-        unique=True, 
+        String(100),
+        unique=True,
         nullable=False
     )
 
     name = Column(
-        String(100), 
+        String(100),
         nullable=False
     )
 
     email = Column(
-        String(255), 
-        unique=True, 
+        String(255),
+        unique=True,
         nullable=False
     )
 
     hashed_password = Column(
-        String(255), 
+        String(255),
         nullable=False
     )
 
     role = Column(
-        String(50), 
-        default="CUSTOMER", 
+        String(50),
+        default="CUSTOMER",
         nullable=False
     )
 
     phone = Column(
-        String(30), 
-        unique=True, 
+        String(30),
+        unique=True,
         nullable=False
     )
 
     status = Column(
-        String(50), 
+        String(50),
         default="ACTIVE",
         nullable=False
     )
 
-    timestamps = Column(
-        DateTime, 
-        default=datetime.utcnow
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
     )
-    
-    restaurants = relationship (
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    # RELATIONSHIPS
+
+    restaurants = relationship(
         "Restaurant",
         back_populates="owner"
+    )
+
+    orders = relationship(
+        "Order",
+        back_populates="customer"
     )

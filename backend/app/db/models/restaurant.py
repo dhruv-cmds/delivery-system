@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column,
     Integer,
-    String, 
+    String,
     DateTime,
     ForeignKey
 )
@@ -12,47 +12,47 @@ from sqlalchemy.orm import relationship
 
 from app.db import Base
 
+
 class Restaurant(Base):
 
     __tablename__ = "restaurants"
 
     id = Column(
-        Integer, 
-        primary_key=True, 
+        Integer,
+        primary_key=True,
         index=True
     )
 
     name = Column(
-        String(255), 
+        String(255),
         nullable=False
     )
-    
+
     address = Column(
-        String(255), 
+        String(255),
         nullable=False
     )
 
     phone = Column(
-        String(20), 
-        unique=True, 
+        String(20),
+        unique=True,
         nullable=False
     )
 
     status = Column(
-        String(50), 
+        String(50),
         default="OPEN",
         nullable=False
     )
 
     owner_id = Column(
-        Integer, 
+        Integer,
         ForeignKey("users.id"),
         nullable=True
-
     )
-    
+
     created_at = Column(
-        DateTime, 
+        DateTime,
         default=datetime.utcnow,
         nullable=False
     )
@@ -64,16 +64,18 @@ class Restaurant(Base):
         nullable=False
     )
 
+    # RELATIONSHIPS
+
     owner = relationship(
         "User",
-        back_populates="restaurant",
+        back_populates="restaurants"
     )
 
-    # orders = relationship(
-    #     "Order",
-    #     back_populates="restaurant"
-    # )
-    
+    orders = relationship(
+        "Order",
+        back_populates="restaurant"
+    )
+
     menu_items = relationship(
         "Menu",
         back_populates="restaurant",

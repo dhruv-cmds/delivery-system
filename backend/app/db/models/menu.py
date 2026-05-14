@@ -3,12 +3,16 @@ from sqlalchemy import (
     Integer,
     String,
     DECIMAL,
-    ForeignKey
+    ForeignKey,
+    DateTime
 )
 
 from sqlalchemy.orm import relationship
 
+from datetime import datetime
+
 from app.db import Base
+
 
 class Menu(Base):
 
@@ -28,7 +32,7 @@ class Menu(Base):
 
     item_name = Column(
         String(255),
-        nullable=False,  
+        nullable=False
     )
 
     description = Column(
@@ -37,7 +41,7 @@ class Menu(Base):
     )
 
     price = Column(
-        DECIMAL(10 , 2),
+        DECIMAL(10, 2),
         nullable=False
     )
 
@@ -47,6 +51,21 @@ class Menu(Base):
         nullable=False
     )
 
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    # RELATIONSHIPS
+    
     restaurant = relationship(
         "Restaurant",
         back_populates="menu_items"
