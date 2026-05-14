@@ -42,8 +42,13 @@ class DeliveryPartner(Base):
         nullable=False
     )
 
-    current_location = Column(
-        String(255),
+    current_latitude = Column(
+        DECIMAL(10, 7),
+        nullable=True
+    )
+
+    current_longitude = Column(
+        DECIMAL(10, 7),
         nullable=True
     )
 

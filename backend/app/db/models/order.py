@@ -89,6 +89,12 @@ class Order(Base):
         back_populates="orders"
     )
 
+    tracking_updates = relationship(
+        "OrderTracking",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+    
     customer = relationship(
         "User",
         foreign_keys=[customer_id],
