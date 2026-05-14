@@ -43,7 +43,8 @@ class Menu(Base):
 
     status = Column(
         String(20),
-        default="AVAILABLE"
+        default="AVAILABLE",
+        nullable=False
     )
 
     restaurant = relationship(
