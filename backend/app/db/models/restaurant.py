@@ -25,7 +25,8 @@ class Restaurant(Base):
 
     name = Column(
         String(255),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     address = Column(
@@ -42,13 +43,15 @@ class Restaurant(Base):
     status = Column(
         String(50),
         default="OPEN",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     owner_id = Column(
         Integer,
         ForeignKey("users.id"),
-        nullable=True
+        nullable=True,
+        index=True
     )
 
     created_at = Column(

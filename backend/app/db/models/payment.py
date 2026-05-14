@@ -28,7 +28,8 @@ class Payment(Base):
         Integer,
         ForeignKey("orders.id"),
         nullable=False,
-        unique=True
+        unique=True,
+        index=True
     )
 
     amount = Column(
@@ -36,23 +37,27 @@ class Payment(Base):
         nullable=False
     )
 
+    # EXAMPLES:
     # UPI / COD / CARD
     payment_method = Column(
         String(20),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     status = Column(
         String(20),
         default="PENDING",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     # EXAMPLE:
     # txn_928374923
     transaction_reference = Column(
         String(100),
-        nullable=True
+        nullable=True,
+        unique=True
     )
 
     paid_at = Column(

@@ -27,25 +27,29 @@ class Order(Base):
     customer_id = Column(
         Integer,
         ForeignKey("users.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     restaurant_id = Column(
         Integer,
         ForeignKey("restaurants.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     delivery_partner_id = Column(
         Integer,
         ForeignKey("delivery_partners.id"),
-        nullable=True
+        nullable=True,
+        index=True
     )
 
     status = Column(
         String(20),
         default="PENDING",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     total_price = Column(
@@ -61,7 +65,8 @@ class Order(Base):
     payment_status = Column(
         String(20),
         default="PENDING",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at = Column(
@@ -78,7 +83,7 @@ class Order(Base):
     )
 
     # RELATIONSHIPS
-    
+
     restaurant = relationship(
         "Restaurant",
         back_populates="orders"
@@ -94,7 +99,7 @@ class Order(Base):
         back_populates="order",
         cascade="all, delete-orphan"
     )
-    
+
     customer = relationship(
         "User",
         foreign_keys=[customer_id],

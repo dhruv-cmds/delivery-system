@@ -28,7 +28,8 @@ class DeliveryPartner(Base):
         Integer,
         ForeignKey("users.id"),
         nullable=False,
-        unique=True
+        unique=True,
+        index=True
     )
 
     vehicle_type = Column(
@@ -39,7 +40,8 @@ class DeliveryPartner(Base):
     status = Column(
         String(20),
         default="AVAILABLE",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     current_latitude = Column(
@@ -70,6 +72,7 @@ class DeliveryPartner(Base):
         nullable=False
     )
 
+    # RELATIONSHIPS
 
     user = relationship(
         "User"

@@ -27,7 +27,11 @@ class Menu(Base):
     restaurant_id = Column(
         Integer,
         ForeignKey("restaurants.id"),
-        nullable=False
+        nullable=False,
+
+        # GOOD:
+        # restaurant menu queried frequently
+        index=True
     )
 
     item_name = Column(
@@ -48,7 +52,8 @@ class Menu(Base):
     status = Column(
         String(20),
         default="AVAILABLE",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at = Column(
@@ -65,7 +70,7 @@ class Menu(Base):
     )
 
     # RELATIONSHIPS
-    
+
     restaurant = relationship(
         "Restaurant",
         back_populates="menu_items"

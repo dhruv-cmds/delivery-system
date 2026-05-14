@@ -25,7 +25,8 @@ class User(Base):
     username = Column(
         String(100),
         unique=True,
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     name = Column(
@@ -36,7 +37,8 @@ class User(Base):
     email = Column(
         String(255),
         unique=True,
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     hashed_password = Column(
@@ -47,19 +49,22 @@ class User(Base):
     role = Column(
         String(50),
         default="CUSTOMER",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     phone = Column(
         String(30),
         unique=True,
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     status = Column(
         String(50),
         default="ACTIVE",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at = Column(
@@ -85,4 +90,16 @@ class User(Base):
     orders = relationship(
         "Order",
         back_populates="customer"
+    )
+
+    delivery_partner = relationship(
+        "DeliveryPartner",
+        back_populates="user",
+        uselist=False
+    )
+
+    
+    notifications = relationship(
+        "Notification",
+        back_populates="user"
     )

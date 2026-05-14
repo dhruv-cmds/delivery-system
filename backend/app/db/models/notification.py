@@ -3,7 +3,8 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    ForeignKey
+    ForeignKey,
+    Text
 )
 
 from sqlalchemy.orm import relationship
@@ -26,25 +27,28 @@ class Notification(Base):
     user_id = Column(
         Integer,
         ForeignKey("users.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     message = Column(
-        String(255),
+        Text,
         nullable=False
     )
 
-    # TYPE OF NOTIFICATION
+    # EXAMPLES:
     # ORDER_UPDATE / PAYMENT / DELIVERY / SYSTEM
     notification_type = Column(
         String(100),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     status = Column(
         String(20),
         default="UNREAD",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     created_at = Column(
@@ -61,6 +65,11 @@ class Notification(Base):
     )
 
     # RELATIONSHIPS
+
+    notifications = relationship(
+        "Notification",
+        back_populates="user"
+    )
 
     user = relationship(
         "User"

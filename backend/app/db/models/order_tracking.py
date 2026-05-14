@@ -16,7 +16,7 @@ from app.db import Base
 
 class OrderTracking(Base):
 
-    __tablename__ = "order_trackings"
+    __tablename__ = "order_tracking"
 
     id = Column(
         Integer,
@@ -27,13 +27,15 @@ class OrderTracking(Base):
     order_id = Column(
         Integer,
         ForeignKey("orders.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     status = Column(
         String(20),
         default="PENDING",
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     latitude = Column(
@@ -58,6 +60,8 @@ class OrderTracking(Base):
         onupdate=datetime.utcnow,
         nullable=False
     )
+
+    # RELATIONSHIPS
 
     order = relationship(
         "Order",
