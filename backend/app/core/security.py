@@ -11,7 +11,7 @@ from datetime import (
 from .config import setting
 
 
-pwd_content = CryptContext(schemes=["bycrypt"], deprecated="auto")
+pwd_content = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str):

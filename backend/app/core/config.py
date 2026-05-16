@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-load_dotenv(BASE_DIR / "backend" / "app" / ".env")
+load_dotenv(BASE_DIR / ".env")
 
 
 ENV = os.getenv("ENV", "dev")

@@ -69,5 +69,5 @@ class Notification(Base):
     # RELATIONSHIPS
     
     user: Mapped["User"] = relationship(
-        back_populates="notification"
+        back_populates="notifications"
     )

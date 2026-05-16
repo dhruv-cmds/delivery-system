@@ -17,6 +17,7 @@ from app.db import Base
 
 if TYPE_CHECKING:
     from delivery_partner import DeliveryPartner
+    from order_item import OrderItem
     from order_tracking import OrderTracking
     from restaurant import Restaurant
     from user import User
@@ -96,6 +97,11 @@ class Order(Base):
     )
 
     tracking_updates: Mapped[list["OrderTracking"]] = relationship(
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+
+    order_items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order",
         cascade="all, delete-orphan"
     )

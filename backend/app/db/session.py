@@ -29,13 +29,13 @@ if ENV == "docker":
 
 else:
     DB_HOST = "127.0.0.1"
-    DB_PORT = "3008"
+    DB_PORT = "3010"
 
 
 DATABASE_URL = (
     f"mysql+aiomysql://"
     f"{DB_USER}:{DB_PASSWORD}"
-    f"{DB_HOST}:{DB_PORT}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 

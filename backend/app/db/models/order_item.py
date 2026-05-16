@@ -3,60 +3,55 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
-    String,
     DateTime,
     DECIMAL,
     ForeignKey
 )
-
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
-
 from decimal import Decimal
 
 from app.db import Base
 
 if TYPE_CHECKING:
-    from restaurant import Restaurant
-    from order_item import OrderItem
+    from order import Order
+    from menu import Menu
 
 
+class OrderItem(Base):
 
-class Menu(Base):
-
-    __tablename__ = "menu_items"
+    __tablename__ = "order_items"
 
     id: Mapped[int] = mapped_column(
         primary_key=True
     )
 
-    restaurant_id: Mapped[int] = mapped_column(
-        ForeignKey("restaurants.id"),
+    order_id: Mapped[int] = mapped_column(
+        ForeignKey("orders.id"),
         nullable=False,
         index=True
     )
 
-    item_name: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False
+    menu_item_id: Mapped[int] = mapped_column(
+        ForeignKey("menu_items.id"),
+        nullable=False,
+        index=True
     )
 
-    description: Mapped[str] = mapped_column(
-        String(255),
-        nullable=True
+    quantity: Mapped[int] = mapped_column(
+        nullable=False,
+        default=1
     )
 
-    price: Mapped[Decimal] = mapped_column(
+    unit_price: Mapped[Decimal] = mapped_column(
         DECIMAL(10, 2),
         nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="AVAILABLE",
-        nullable=False,
-        index=True
+    total_price: Mapped[Decimal] = mapped_column(
+        DECIMAL(10, 2),
+        nullable=False
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -74,11 +69,10 @@ class Menu(Base):
 
     # RELATIONSHIPS
 
-    restaurant: Mapped["Restaurant"] = relationship(
-        back_populates="menu_items"
+    order: Mapped["Order"] = relationship(
+        back_populates="order_items"
     )
 
-    order_items: Mapped[list["OrderItem"]] = relationship(
-        back_populates="menu_item",
-        cascade="all, delete-orphan"
+    menu_item: Mapped["Menu"] = relationship(
+        back_populates="order_items"
     )

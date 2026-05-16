@@ -4,20 +4,20 @@ services:
     container_name: delivery-api
 
     build:
-      context: ..
+      context: .
       dockerfile: docker/backend.Dockerfile
 
     ports:
       - "8003:8000"
-    
+
     volumes:
-      - ..:/app
+      - .:/app
 
     depends_on:
       - delivery-db
-    
+
     env_file:
-      - ../bankend/.env
+      - ./backend/.env
 
     restart: always
 
@@ -30,7 +30,7 @@ services:
     restart: always
 
     env_file:
-      - ../backend/.env
+      - ./backend/.env
 
     ports:
       - "3010:3306"
