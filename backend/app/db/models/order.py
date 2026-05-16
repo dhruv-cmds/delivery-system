@@ -1,81 +1,84 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
-    Column,
-    Integer,
     String,
     DateTime,
-    ForeignKey,
-    DECIMAL
+    DECIMAL,
+    ForeignKey
 )
-
-from sqlalchemy.orm import relationship
+from decimal import Decimal
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
 
 from app.db import Base
+
+if TYPE_CHECKING:
+    from delivery_partner import DeliveryPartner
+    from order_tracking import OrderTracking
+    from restaurant import Restaurant
+    from user import User
 
 
 class Order(Base):
 
     __tablename__ = "orders"
 
-    id = Column(
-        Integer,
+    id: Mapped[int] = mapped_column(
         primary_key=True,
-        index=True
     )
 
-    customer_id = Column(
-        Integer,
+    customer_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,
         index=True
     )
 
-    restaurant_id = Column(
-        Integer,
+    restaurant_id: Mapped[int] = mapped_column(
         ForeignKey("restaurants.id"),
         nullable=False,
         index=True
     )
 
-    delivery_partner_id = Column(
-        Integer,
+    delivery_partner_id: Mapped[int] = mapped_column(
         ForeignKey("delivery_partners.id"),
         nullable=True,
         index=True
     )
 
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String(20),
         default="PENDING",
         nullable=False,
         index=True
     )
 
-    total_price = Column(
+    total_price: Mapped[Decimal] = mapped_column(
         DECIMAL(10, 2),
         nullable=False
     )
 
-    delivery_address = Column(
+    delivery_address: Mapped[str] = mapped_column(
         String(255),
         nullable=False
     )
 
-    payment_status = Column(
+    payment_status: Mapped[str] = mapped_column(
         String(20),
         default="PENDING",
         nullable=False,
         index=True
     )
 
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
         nullable=False
     )
 
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
@@ -84,24 +87,20 @@ class Order(Base):
 
     # RELATIONSHIPS
 
-    restaurant = relationship(
-        "Restaurant",
+    restaurant: Mapped["Restaurant"] = relationship(
         back_populates="orders"
     )
 
-    delivery_partner = relationship(
-        "DeliveryPartner",
+    delivery_partner: Mapped["DeliveryPartner"] = relationship(
         back_populates="orders"
     )
 
-    tracking_updates = relationship(
-        "OrderTracking",
+    tracking_updates: Mapped[list["OrderTracking"]] = relationship(
         back_populates="order",
         cascade="all, delete-orphan"
     )
 
-    customer = relationship(
-        "User",
+    customer: Mapped["User"] = relationship(
         foreign_keys=[customer_id],
         back_populates="orders"
     )

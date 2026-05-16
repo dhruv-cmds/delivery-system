@@ -1,51 +1,55 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy import (
-    Column,
-    Integer,
     String,
     DateTime,
-    ForeignKey,
-    DECIMAL
+    DECIMAL,
+    ForeignKey
 )
 
-from sqlalchemy.orm import relationship
+from decimal import Decimal
+
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
 
 from app.db import Base
+
+if TYPE_CHECKING:
+    from order import Order
 
 
 class Payment(Base):
 
     __tablename__ = "payments"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
+    id: Mapped[int] = mapped_column(
+        primary_key=True
     )
 
-    order_id = Column(
-        Integer,
+    order_id: Mapped[int] = mapped_column(
         ForeignKey("orders.id"),
         nullable=False,
         unique=True,
         index=True
     )
 
-    amount = Column(
+    amount: Mapped[Decimal] = mapped_column(
         DECIMAL(10, 2),
         nullable=False
     )
 
     # EXAMPLES:
     # UPI / COD / CARD
-    payment_method = Column(
+    payment_method: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
         index=True
     )
 
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String(20),
         default="PENDING",
         nullable=False,
@@ -54,24 +58,24 @@ class Payment(Base):
 
     # EXAMPLE:
     # txn_928374923
-    transaction_reference = Column(
+    transaction_reference: Mapped[str] = mapped_column(
         String(100),
         nullable=True,
         unique=True
     )
 
-    paid_at = Column(
+    paid_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=True
     )
 
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
         nullable=False
     )
 
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
@@ -80,6 +84,6 @@ class Payment(Base):
 
     # RELATIONSHIPS
 
-    order = relationship(
+    order: Mapped["Order"] = relationship(
         "Order"
     )
