@@ -25,7 +25,7 @@ PhoneStr = Annotated[
     )
 ]
 
-EmailStr = Annotated[
+Email = Annotated[
     EmailStr,
     StringConstraints(
         max_length=100
