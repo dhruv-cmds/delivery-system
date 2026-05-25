@@ -1,4 +1,4 @@
-from pydantic import StringConstraints
+from pydantic import StringConstraints, EmailStr
 from typing import Annotated
 
 NameStr = Annotated[
@@ -12,7 +12,7 @@ NameStr = Annotated[
 PasswordStr = Annotated[
     str,
     StringConstraints(
-        min_length=2,
+        min_length=8,
         max_length=100
     )
 ]
@@ -20,15 +20,14 @@ PasswordStr = Annotated[
 PhoneStr = Annotated[
     str,
     StringConstraints(
-        min_length=2,
+        min_length=7,
         max_length=100
     )
 ]
 
 EmailStr = Annotated[
-    str,
+    EmailStr,
     StringConstraints(
-        min_length=2,
         max_length=100
     )
 ]
