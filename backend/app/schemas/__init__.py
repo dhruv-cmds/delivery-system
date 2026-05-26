@@ -48,3 +48,11 @@ from .payment import (
     PaymentCreate,
     PaymentResponse
 )
+
+from .delivery_partner import (
+
+    DeliveryPartnerBase,
+    DeliveryPartnerCreate,
+    DeliveryPartnerResponse
+    
+)
