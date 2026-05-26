@@ -3,20 +3,20 @@ from pydantic import BaseModel, Field
 
 from decimal import Decimal
 
-# Base = common fields
+# common fields
 class OrderItemBase (BaseModel):
 
     menu_item_id: int = Field(..., examples=[23])
     quantity: int = Field(..., examples=[2])
 
 
-# Create = frontend sends this
+# frontend sends this
 class OrderItemCreate (OrderItemBase):
 
     pass 
 
 
-# Response = FastAPI returns this to frontend
+# FastAPI returns this to frontend
 class OrderItemResponse (OrderItemBase):
 
     id: int = Field(..., examples=[1, 2, 3])

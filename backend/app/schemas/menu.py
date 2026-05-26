@@ -6,7 +6,7 @@ from pydantic import (
 
 from decimal import Decimal
 
-# Base     = common/shared fields
+# common/shared fields
 class MenuBase (BaseModel):
 
     restaurant_id: int = Field(..., examples=["1", "2" , "3"])
@@ -15,13 +15,13 @@ class MenuBase (BaseModel):
     price: Decimal = Field(..., examples=[499.00, 599.00, 999.00])
 
 
-# Create   = frontend sends this to FastAPI
+# frontend sends this to FastAPI
 class MenuCreate (MenuBase):
 
     pass
 
 
-# Response = FastAPI returns this to frontend
+# FastAPI returns this to frontend
 class MenuResponse (MenuBase):
 
     id: int = Field(..., examples=[24])

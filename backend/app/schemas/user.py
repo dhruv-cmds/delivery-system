@@ -14,7 +14,7 @@ from app.schemas import (
 )
 
 
-# Base     = common/shared fields
+# common/shared fields
 class UserBase (BaseModel):
     
     username: NameStr = Field (..., examples=["adam"])
@@ -23,13 +23,13 @@ class UserBase (BaseModel):
     email: Email = Field (..., examples=["adamexample@gmail.com"])
 
 
-# Create   = frontend sends this to FastAPI
+# frontend sends this to FastAPI
 class UserCreate (UserBase):
 
     password: PasswordStr = Field (..., examples=["Strongpass123"])
 
 
-# Response = FastAPI returns this to frontend
+# FastAPI returns this to frontend
 class UserResponse (UserBase):
 
     id: int = Field(..., examples=[1])

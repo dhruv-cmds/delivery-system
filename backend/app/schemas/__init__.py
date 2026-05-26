@@ -27,3 +27,11 @@ from .menu import (
     MenuCreate,
     MenuResponse
 )
+
+from .order_item import (
+
+    OrderItemBase,
+    OrderItemCreate,
+    OrderItemResponse
+)
+

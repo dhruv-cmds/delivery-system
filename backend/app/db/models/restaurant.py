@@ -53,7 +53,7 @@ class Restaurant(Base):
 
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
-        nullable=True,
+        nullable=False,
         index=True
     )
 
