@@ -42,9 +42,9 @@ class Payment(Base):
     )
 
     # EXAMPLES:
-    # UPI / COD / CARD
+    # UPI / COD / CARD / ONLINE
     payment_method: Mapped[str] = mapped_column(
-        String(20),
+        String(50),
         nullable=False,
         index=True
     )

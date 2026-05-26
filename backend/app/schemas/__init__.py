@@ -35,3 +35,16 @@ from .order_item import (
     OrderItemResponse
 )
 
+from .restaurant import (
+    
+    RestaurantBase,
+    RestaurantCreate,
+    RestaurantResponse
+)
+
+from .payment import (
+
+    PaymentBase,
+    PaymentCreate,
+    PaymentResponse
+)
