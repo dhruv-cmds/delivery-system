@@ -18,9 +18,12 @@ from .constants import (
 
 from .exceptions import (
 
-    OrderAlreadyDeliveredException,
-    InvalidOrderStateException,
-    InsufficientBalanceException
+    DatabaseError,
+    UserAlreadyExistsError,
+    UserNotFoundError,
+    OrderAlreadyDeliveredError,
+    InvalidOrderStateError,
+    InsufficientBalanceError
 )
 
 

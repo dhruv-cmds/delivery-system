@@ -1,47 +1,124 @@
 from decimal import Decimal
+from typing import Optional
 
-class OrderAlreadyDeliveredException(Exception):
+from fastapi import HTTPException, status
+
+
+class DeliverySystemError(HTTPException):
+    """Base exception for delivery system errors."""
 
     def __init__(
         self,
-        message: str = "Order has already been delivered"
+        error_code: str,
+        message: str,
+        status_code: int = status.HTTP_400_BAD_REQUEST,
+        headers: Optional[dict] = None,
     ):
+        self.error_code = error_code
         self.message = message
-        super().__init__(self.message)
+
+        detail = {
+            "error": error_code,
+            "message": message,
+        }
+
+        # call the parent class (HTTPException is parent class)
+        super().__init__(
+            status_code=status_code,
+            detail=detail,
+            headers=headers,
+        )
+
+class DatabaseError(DeliverySystemError):
+
+    def __init__(
+        self, 
+        message = "Database operation failed"
+    ):
+        
+        super().__init__(
+            error_code="DATABASE_ERROR",
+            message=message,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+class UserAlreadyExistsError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "User already exists with this name",
+    ):
+        
+        super().__init__(
+            error_code="USER_ALREADY_EXISTS",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT,
+        )
 
 
-class InvalidOrderStateException(Exception):
+class UserNotFoundError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "User not found",
+    ):
+        
+        super().__init__(
+            error_code="USER_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class OrderAlreadyDeliveredError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Order has already been delivered",
+    ):
+        
+        super().__init__(
+            error_code="ORDER_ALREADY_DELIVERED",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class InvalidOrderStateError(DeliverySystemError):
 
     def __init__(
         self,
         current_state: str,
-        expected_state: str | None = None
+        expected_state: str | None = None,
     ):
-
+        
         if expected_state:
             message = (
                 f"Invalid order state '{current_state}'. "
                 f"Expected '{expected_state}'."
             )
+
         else:
-            message = (
-                f"Invalid order state '{current_state}'."
-            )
+            message = f"Invalid order state '{current_state}'."
 
         self.current_state = current_state
         self.expected_state = expected_state
 
-        super().__init__(message)
+        super().__init__(
+            error_code="INVALID_ORDER_STATE",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
 
-class InsufficientBalanceException(Exception):
+class InsufficientBalanceError(DeliverySystemError):
 
     def __init__(
         self,
         current_balance: Decimal,
-        required_balance: Decimal
+        required_balance: Decimal,
     ):
-
+        
         self.current_balance = current_balance
         self.required_balance = required_balance
 
@@ -51,34 +128,9 @@ class InsufficientBalanceException(Exception):
             f"Required: {required_balance}"
         )
 
-        super().__init__(message)
 
-
-# USE CASE 
-
-    '''service'''
-    # async def transfer_money(sender, receiver, amount):
-
-    #     if sender.balance < amount:
-
-    #         raise InsufficientBalanceException(
-    #             current_balance=sender.balance,
-    #             required_balance=amount
-    #         )
-
-    #     sender.balance -= amount
-
-
-    '''routes'''
-    # from core import constants
-    # @app.exception_handler(InsufficientBalanceException)
-    # async def payment_status (request , exc):
-
-    #     return JSONResponse(
-    #         status_code=400,
-    #         content={
-    #             "current_balance": str(exc.current_balance),
-    #             "required_balance": str(exc.required_balance),
-    #             "message": str(exc)
-    #         }
-    #     )
+        super().__init__(
+            error_code="INSUFFICIENT_BALANCE",
+            message=message,
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        )
