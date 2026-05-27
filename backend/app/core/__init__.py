@@ -21,6 +21,7 @@ from .exceptions import (
     DatabaseError,
     UserAlreadyExistsError,
     UserNotFoundError,
+    InvalidCredentialsError,
     OrderAlreadyDeliveredError,
     InvalidOrderStateError,
     InsufficientBalanceError
