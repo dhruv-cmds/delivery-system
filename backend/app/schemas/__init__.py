@@ -56,3 +56,10 @@ from .delivery_partner import (
     DeliveryPartnerResponse
     
 )
+
+from .websocket import (
+
+    WebSocketSubscribe,
+    LiveLocationUpdate,
+    WebSocketError
+)
