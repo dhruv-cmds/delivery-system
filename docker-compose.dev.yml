@@ -1,0 +1,39 @@
+services:
+  delivery-api:
+
+    container_name: delivery-api
+
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+
+    ports:
+      - "8003:8000"
+
+    volumes:
+      - .:/app:Z
+
+    depends_on:
+      - delivery-db
+
+    env_file:
+      - ./backend/.env
+
+    restart: always
+
+  delivery-db:
+
+    container_name: delivery-db
+
+    image: mysql:8.0
+
+    restart: always
+
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "3010:3306"
+
+    volumes:
+      - ./databases/deliver:/var/lib/mysql:Z

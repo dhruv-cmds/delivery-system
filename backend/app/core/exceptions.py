@@ -70,6 +70,20 @@ class UserNotFoundError(DeliverySystemError):
         )
 
 
+class InvalidCredentialsError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Invalid email or password"
+    ):
+        
+        super().__init__(
+            error_code="INVALID_EMAIL_OR_PASSWORD",
+            message=message,
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+
 class OrderAlreadyDeliveredError(DeliverySystemError):
 
     def __init__(
