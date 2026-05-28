@@ -42,6 +42,21 @@ class DatabaseError(DeliverySystemError):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+class PermissionDeniedError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Permistion not granted"
+    ):
+        
+        super().__init__(
+
+            error_code="PERMISTION_NOT_GRANTED",
+            message=message,
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
 class UserAlreadyExistsError(DeliverySystemError):
 
     def __init__(
@@ -83,6 +98,50 @@ class InvalidCredentialsError(DeliverySystemError):
             status_code=status.HTTP_401_UNAUTHORIZED
         )
 
+class MenuAlreadyExistError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Menu already exist"
+    ):
+        
+        super().__init__(
+            error_code="MENU_ALREADY_EXIST",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
+class MenuNotFoundError(DeliverySystemError):
+
+    def __init__(
+        
+        self,
+        message: str = "Menu not found"
+    ):
+        
+        super().__init__(
+
+            error_code="MENU_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+class RestaurantNotFoundError(DeliverySystemError):
+
+
+    def __init__(
+    
+        self,
+        message: str = "Restaurant not found"
+    ):
+    
+        super().__init__(
+
+            error_code="RESTAURANT_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
 
 class OrderAlreadyDeliveredError(DeliverySystemError):
 

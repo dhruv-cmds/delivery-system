@@ -19,9 +19,13 @@ from .constants import (
 from .exceptions import (
 
     DatabaseError,
+    PermissionDeniedError,
     UserAlreadyExistsError,
     UserNotFoundError,
     InvalidCredentialsError,
+    MenuAlreadyExistError,
+    MenuNotFoundError,
+    RestaurantNotFoundError,
     OrderAlreadyDeliveredError,
     InvalidOrderStateError,
     InsufficientBalanceError

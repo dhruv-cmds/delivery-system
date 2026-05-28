@@ -16,7 +16,7 @@ from app.core import (
     logger
 )
 
-async def sign_up(db, user):
+async def sign_up(db, user: UserCreate):
 
     return await create_user(db, user)
     

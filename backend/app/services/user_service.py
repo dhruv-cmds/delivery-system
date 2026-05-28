@@ -11,7 +11,7 @@ from app.core import (
 
 from sqlalchemy.exc  import IntegrityError
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.db.models import User
 
@@ -28,7 +28,7 @@ async def create_user(
     result = await db.execute(
         select(User)
         .where(
-            (User.username == user.username) |
+            (User.username == user.username.lower()) |
             (User.phone == user.phone) |
             (User.email == user.email)
         )
@@ -43,7 +43,7 @@ async def create_user(
     
     
     new_user = User(
-        username=user.username,
+        username=user.username.lower(),
         name=user.name,
         phone=user.phone,
         email=user.email,
