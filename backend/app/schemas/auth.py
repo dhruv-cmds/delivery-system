@@ -10,12 +10,12 @@ from app.schemas import (
     Email
 )
 
-class LoginRequest (BaseModel):
+class LoginRequest(BaseModel):
     
     email: Email = Field (..., examples=["adamexample@gmail.com"])
     password : PasswordStr = Field (..., examples=["Strongpass123"])
 
-class TokenResponse (BaseModel):
+class TokenResponse(BaseModel):
 
     access_token: str = Field (
 

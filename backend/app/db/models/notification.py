@@ -16,7 +16,6 @@ from datetime import datetime
 from app.db import Base
 
 if TYPE_CHECKING:
-    from notification import Notification
     from user import User
 
 class Notification(Base):

@@ -8,15 +8,15 @@ from pydantic import (
 from decimal import Decimal
 
 
-class DeliveryPartnerBase (BaseModel):
+class DeliveryPartnerBase(BaseModel):
 
     vehicle_type: str = Field(..., examples=["Two wheeler", "Four wheeler"])
 
-class DeliveryPartnerCreate (DeliveryPartnerBase):
+class DeliveryPartnerCreate(DeliveryPartnerBase):
 
     pass 
 
-class DeliveryPartnerResponse (DeliveryPartnerBase):
+class DeliveryPartnerResponse(DeliveryPartnerBase):
 
     id: int = Field(..., examples=[603])
     user_id: int | None = Field(None, examples=[79])

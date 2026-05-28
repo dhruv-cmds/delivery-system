@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Literal
 
 
-class PaymentBase (BaseModel):
+class PaymentBase(BaseModel):
 
     # Literal means only these values are allowed:
     
@@ -30,11 +30,11 @@ class PaymentBase (BaseModel):
         ]
     )
 
-class PaymentCreate (PaymentBase):
+class PaymentCreate(PaymentBase):
 
     pass 
 
-class PaymentResponse (PaymentBase):
+class PaymentResponse(PaymentBase):
 
     id: int = Field(..., examples=[1])
     order_id: int = Field(..., examples=[454])

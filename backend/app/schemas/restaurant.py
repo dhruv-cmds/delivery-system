@@ -11,7 +11,7 @@ from app.schemas import (
 )
 
 # common/shared fields
-class RestaurantBase (BaseModel):
+class RestaurantBase(BaseModel):
 
     name: NameStr = Field(
         ..., 
@@ -33,13 +33,13 @@ class RestaurantBase (BaseModel):
 
 
 # frontend sends this to FastAPI
-class RestaurantCreate (RestaurantBase):
+class RestaurantCreate(RestaurantBase):
 
     pass 
 
 
 # FastAPI returns this to frontend
-class RestaurantResponse (RestaurantBase):
+class RestaurantResponse(RestaurantBase):
 
     id: int = Field(..., examples=[35])
     owner_id: int | None = Field(None, eamples=[1])
