@@ -1,3 +1,10 @@
+from .auth import (
+
+    LoginRequest,
+    TokenResponse
+)
+
+
 from .common import (
 
     NameStr,
@@ -6,18 +13,12 @@ from .common import (
     Email
 )
 
-from .user import (
 
-    UserBase,
-    UserCreate,
-    UserResponse
-)
+from .delivery_partner import (
 
-
-from .auth import (
-
-    LoginRequest,
-    TokenResponse
+    DeliveryPartnerBase,
+    DeliveryPartnerCreate,
+    DeliveryPartnerResponse   
 )
 
 
@@ -28,6 +29,15 @@ from .menu import (
     MenuResponse
 )
 
+
+from .notification import (
+
+    NotificationBase,
+    NotificationCreate,
+    NotificationResponse
+)
+
+
 from .order_item import (
 
     OrderItemBase,
@@ -35,12 +45,6 @@ from .order_item import (
     OrderItemResponse
 )
 
-from .restaurant import (
-    
-    RestaurantBase,
-    RestaurantCreate,
-    RestaurantResponse
-)
 
 from .payment import (
 
@@ -49,13 +53,22 @@ from .payment import (
     PaymentResponse
 )
 
-from .delivery_partner import (
 
-    DeliveryPartnerBase,
-    DeliveryPartnerCreate,
-    DeliveryPartnerResponse
+from .restaurant import (
     
+    RestaurantBase,
+    RestaurantCreate,
+    RestaurantResponse
 )
+
+
+from .user import (
+
+    UserBase,
+    UserCreate,
+    UserResponse
+)
+
 
 from .websocket import (
 
