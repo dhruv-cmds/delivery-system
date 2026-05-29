@@ -104,9 +104,7 @@ These files or areas exist but still need implementation:
 ## Known Issues To Fix
 
 - `backend/requirements.txt` is encoded as UTF-16. It should be converted to UTF-8 for normal tooling compatibility.
-- Some service code references exception names without the final `s`, for example `MenuAlreadyExistError` and `RestaurantAlreadyExistError`, while the defined classes are `MenuAlreadyExistsError` and `RestaurantAlreadyExistsError`.
 - `backend/app/schemas/order_item.py` has an invalid-looking field declaration for `total_price`.
-- `backend/app/schemas/restaurant.py` uses `eamples` instead of `examples` for `owner_id`.
 - API routes are not wired yet, so the application cannot expose the implemented service logic.
 - Tests are not implemented yet.
 

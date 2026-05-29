@@ -42,7 +42,7 @@ async def create_restaurant(
         await db.rollback()
 
         logger.exception("Integrity error while creating restaurant")
-        raise RestaurantAlreadyExistError()
+        raise RestaurantAlreadyExistsError()
 
     except Exception:
         
@@ -106,7 +106,7 @@ async def update_restaurant(
         await db.rollback()
 
         logger.exception("Integrity error while updating restaurant")
-        raise RestaurantAlreadyExistError()
+        raise RestaurantAlreadyExistsError()
 
     except Exception:
 

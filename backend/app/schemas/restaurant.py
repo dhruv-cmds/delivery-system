@@ -42,7 +42,7 @@ class RestaurantCreate(RestaurantBase):
 class RestaurantResponse(RestaurantBase):
 
     id: int = Field(..., examples=[35])
-    owner_id: int | None = Field(None, eamples=[1])
+    owner_id: int | None = Field(None, examples=[1])
     status: str = Field(..., examples=["OPEN"]) 
 
     model_config = {

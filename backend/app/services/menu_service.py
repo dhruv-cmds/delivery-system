@@ -62,7 +62,7 @@ async def create_menu_item(
     if existing_menu:
 
         logger.warning("Menu item already exists")
-        raise MenuAlreadyExistError()
+        raise MenuAlreadyExistsError()
     
 
     new_menu = Menu(
@@ -88,7 +88,7 @@ async def create_menu_item(
         await db.rollback()
 
         logger.exception("Integrity error while creating menu")
-        raise MenuAlreadyExistError()
+        raise MenuAlreadyExistsError()
     
     except Exception:
 
@@ -174,7 +174,7 @@ async def update_menu_item(
         await db.rollback()
 
         logger.warning("Integrity error while updating menu")
-        raise MenuAlreadyExistError()
+        raise MenuAlreadyExistsError()
     
     except Exception:
 
