@@ -29,14 +29,17 @@ class DeliverySystemError(HTTPException):
             headers=headers,
         )
 
+
 class DatabaseError(DeliverySystemError):
 
     def __init__(
+            
         self, 
         message = "Database operation failed"
     ):
         
         super().__init__(
+
             error_code="DATABASE_ERROR",
             message=message,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -47,14 +50,14 @@ class PermissionDeniedError(DeliverySystemError):
     def __init__(
             
         self,
-        message: str = "Permistion not granted"
+        message: str = "You do not have permission to perform this action"
     ):
-        
+
         super().__init__(
 
-            error_code="PERMISTION_NOT_GRANTED",
+            error_code="PERMISSION_DENIED",
             message=message,
-            status_code=status.HTTP_401_UNAUTHORIZED
+            status_code=status.HTTP_403_FORBIDDEN
         )
 
 class UserAlreadyExistsError(DeliverySystemError):
@@ -85,6 +88,35 @@ class UserNotFoundError(DeliverySystemError):
         )
 
 
+
+class InvalidTokenError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Invalid token"
+    ):
+
+        super().__init__(
+            error_code="INVALID_TOKEN",
+            message=message,
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+
+class TokenExpiredError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Token has expired"
+    ):
+
+        super().__init__(
+            error_code="TOKEN_EXPIRED",
+            message=message,
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+
 class InvalidCredentialsError(DeliverySystemError):
 
     def __init__(
@@ -96,35 +128,6 @@ class InvalidCredentialsError(DeliverySystemError):
             error_code="INVALID_EMAIL_OR_PASSWORD",
             message=message,
             status_code=status.HTTP_401_UNAUTHORIZED
-        )
-
-class MenuAlreadyExistError(DeliverySystemError):
-
-    def __init__(
-            
-        self,
-        message: str = "Menu already exist"
-    ):
-        
-        super().__init__(
-            error_code="MENU_ALREADY_EXIST",
-            message=message,
-            status_code=status.HTTP_409_CONFLICT
-        )
-
-class MenuNotFoundError(DeliverySystemError):
-
-    def __init__(
-        
-        self,
-        message: str = "Menu not found"
-    ):
-        
-        super().__init__(
-
-            error_code="MENU_NOT_FOUND",
-            message=message,
-            status_code=status.HTTP_404_NOT_FOUND
         )
 
 class RestaurantNotFoundError(DeliverySystemError):
@@ -143,6 +146,70 @@ class RestaurantNotFoundError(DeliverySystemError):
             status_code=status.HTTP_404_NOT_FOUND
         )
 
+class RestaurantAlreadyExistsError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Restaurant already exists"
+    ):
+
+        super().__init__(
+
+            error_code="RESTAURANT_ALREADY_EXISTS",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
+
+class MenuNotFoundError(DeliverySystemError):
+
+    def __init__(
+        
+        self,
+        message: str = "Menu not found"
+    ):
+        
+        super().__init__(
+
+            error_code="MENU_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
+class MenuAlreadyExistsError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Menu item already exists"
+    ):
+
+        super().__init__(
+
+            error_code="MENU_ALREADY_EXISTS",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
+
+class OrderNotFoundError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Order not found"
+    ):
+
+        super().__init__(
+
+            error_code="ORDER_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
 class OrderAlreadyDeliveredError(DeliverySystemError):
 
     def __init__(
@@ -154,6 +221,38 @@ class OrderAlreadyDeliveredError(DeliverySystemError):
             error_code="ORDER_ALREADY_DELIVERED",
             message=message,
             status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class OrderItemNotFoundError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Order item not found"
+    ):
+
+        super().__init__(
+
+            error_code="ORDER_ITEM_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
+class EmptyOrderError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Order must contain at least one item"
+    ):
+
+        super().__init__(
+
+            error_code="EMPTY_ORDER",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -184,6 +283,39 @@ class InvalidOrderStateError(DeliverySystemError):
         )
 
 
+class PaymentNotFoundError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Payment not found"
+    ):
+
+        super().__init__(
+
+            error_code="PAYMENT_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
+class PaymentAlreadyCompletedError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Payment has already been completed"
+    ):
+
+        super().__init__(
+            
+            error_code="PAYMENT_ALREADY_COMPLETED",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
+
+
 class InsufficientBalanceError(DeliverySystemError):
 
     def __init__(
@@ -206,4 +338,46 @@ class InsufficientBalanceError(DeliverySystemError):
             error_code="INSUFFICIENT_BALANCE",
             message=message,
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        )
+
+
+class DeliveryPartnerNotFoundError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Delivery partner not found"
+    ):
+
+        super().__init__(
+            error_code="DELIVERY_PARTNER_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
+class DeliveryPartnerUnavailableError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Delivery partner is unavailable"
+    ):
+
+        super().__init__(
+            error_code="DELIVERY_PARTNER_UNAVAILABLE",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
+
+class InvalidOperationError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Invalid operation"
+    ):
+
+        super().__init__(
+            error_code="INVALID_OPERATION",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST
         )

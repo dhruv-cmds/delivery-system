@@ -19,7 +19,7 @@ from app.core import (
 
     DatabaseError,
     PermissionDeniedError,
-    MenuAlreadyExistError,
+    MenuAlreadyExistsError,
     MenuNotFoundError,
 )
 
@@ -85,7 +85,7 @@ async def create_menu_item(
 
     except IntegrityError:
 
-        db.rollback()
+        await db.rollback()
 
         logger.exception("Integrity error while creating menu")
         raise MenuAlreadyExistError()
