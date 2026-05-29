@@ -144,7 +144,6 @@ uvicorn backend.app.main:app --reload
 - Order, payment, tracking, websocket, Redis, analytics, and background task services are currently placeholders.
 - Test files are currently placeholders.
 - Frontend, nginx, k6 load tests, and utility scripts are currently placeholders.
-- `backend/requirements.txt` is currently stored as UTF-16 text. Converting it to UTF-8 is recommended before relying on normal Python tooling in all environments.
 
 ## Suggested Next Steps
 

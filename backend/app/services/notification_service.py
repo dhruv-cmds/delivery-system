@@ -119,7 +119,7 @@ async def delete_notification(
 
     if not notification:
 
-        logger.warning("No notifcation to delete")
+        logger.warning("No notification to delete")
 
         return None
 
@@ -135,5 +135,5 @@ async def delete_notification(
 
         await db.rollback()
 
-        logger.exception("Unexpected error while marking notification as read")
+        logger.exception("Unexpected error while deleting notification")
         raise DatabaseError()  

@@ -11,7 +11,7 @@ from .menu_service import (
     get_menu_item_by_id,
     get_menu_items_by_restaurant,
     update_menu_item,
-    detele_menu_item,
+    delete_menu_item,
     change_menu_status
 )
 

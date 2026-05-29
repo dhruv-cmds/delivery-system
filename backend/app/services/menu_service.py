@@ -183,7 +183,7 @@ async def update_menu_item(
         logger.exception("Unexpected error while updating menu item")
         raise DatabaseError()
     
-async def detele_menu_item(
+async def delete_menu_item(
         
         db: AsyncSession,
         menu_id: int,
@@ -218,7 +218,7 @@ async def detele_menu_item(
 
         await db.rollback()
 
-        logger.exception("Unexpected error while updating menu item")
+        logger.exception("Unexpected error while deleting menu item")
         raise DatabaseError()
 
 async def change_menu_status(

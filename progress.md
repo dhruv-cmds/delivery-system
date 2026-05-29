@@ -103,9 +103,7 @@ These files or areas exist but still need implementation:
 
 ## Known Issues To Fix
 
-- `backend/requirements.txt` is encoded as UTF-16. It should be converted to UTF-8 for normal tooling compatibility.
-- `backend/app/schemas/order_item.py` has an invalid-looking field declaration for `total_price`.
-- API routes are not wired yet, so the application cannot expose the implemented service logic.
+- API route files exist, but they are empty. This means the service functions are written, but no HTTP endpoints are available yet for Postman, a browser, or the frontend to call.
 - Tests are not implemented yet.
 
 ## Recommended Next Milestones
