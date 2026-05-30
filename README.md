@@ -4,7 +4,7 @@ A FastAPI-based backend for a food delivery platform. The project is being built
 
 ## Current Status
 
-This project is under active development. Core database models, validation schemas, authentication helpers, and several service-layer modules are in place. API route handlers, tests, websocket handlers, background tasks, frontend work, and load test scripts are currently scaffolded or pending implementation.
+This project is under active development. Core database models, validation schemas, authentication helpers, and several service-layer modules are in place. Order creation, lookup, update, status transition, and deletion logic has also been added at the service layer. API route handlers, tests, websocket handlers, background tasks, frontend work, and load test scripts are currently scaffolded or pending implementation.
 
 ## Tech Stack
 
@@ -74,6 +74,8 @@ Relationships are defined between users, restaurants, orders, menu items, delive
 - Restaurant service for create, read, update, and delete operations with ownership checks.
 - Menu service for create, read, update, delete, and availability status changes with owner authorization.
 - Notification service for creating, listing, marking as read, and deleting notifications.
+- Order query service for fetching available menu items for orders and retrieving customer-scoped orders.
+- Order service for single-item order creation, updating order items, status changes, and deletion with final-state guards.
 
 ## Environment Variables
 
@@ -141,7 +143,8 @@ uvicorn backend.app.main:app --reload
 - `backend/app/main.py` is currently empty, so the FastAPI app entrypoint still needs to be created.
 - API route files are currently placeholders.
 - Repository modules are currently placeholders.
-- Order, payment, tracking, websocket, Redis, analytics, and background task services are currently placeholders.
+- Payment, tracking, websocket, Redis, analytics, and background task services are currently placeholders.
+- Order service currently supports one menu item per order and still needs route integration and broader workflow handling.
 - Test files are currently placeholders.
 - Frontend, nginx, k6 load tests, and utility scripts are currently placeholders.
 
@@ -151,7 +154,7 @@ uvicorn backend.app.main:app --reload
 2. Add dependency wiring for async database sessions and authenticated users.
 3. Implement route handlers for auth, users, restaurants, menu, notifications, orders, payments, tracking, and websockets.
 4. Add migrations with Alembic or a clear database initialization strategy.
-5. Complete order and payment business logic.
+5. Expand order business logic beyond the current single-item service flow and complete payment business logic.
 6. Add tests for services and API routes.
 7. Seed useful development data.
 8. Implement k6 load tests after stable API endpoints exist.

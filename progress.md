@@ -1,6 +1,6 @@
 # Project Progress
 
-Last updated: 2026-05-29
+Last updated: 2026-05-30
 
 ## Summary
 
@@ -76,6 +76,8 @@ Implemented or partially implemented service-layer logic for:
 - Restaurant creation, lookup, update, and deletion.
 - Menu item creation, lookup, update, deletion, and status changes.
 - Notification creation, listing, mark-as-read, and deletion.
+- Order menu item validation and customer-scoped order lookup.
+- Single-item order creation, order item updates, status updates, and order deletion with checks for delivered, cancelled, and other final states.
 
 ## Current Placeholders
 
@@ -85,7 +87,6 @@ These files or areas exist but still need implementation:
 - `backend/app/lifespan.py`
 - `backend/app/api/routes/*.py`
 - `backend/app/repositories/*.py`
-- `backend/app/services/order_service.py`
 - `backend/app/services/payment_service.py`
 - `backend/app/services/tracking_service.py`
 - `backend/app/services/websocket_service.py`
@@ -104,6 +105,8 @@ These files or areas exist but still need implementation:
 ## Known Issues To Fix
 
 - API route files exist, but they are empty. This means the service functions are written, but no HTTP endpoints are available yet for Postman, a browser, or the frontend to call.
+- Order service currently handles a single menu item per order. Multi-item order creation and richer order lifecycle handling still need to be designed.
+- `backend/app/main.py`, `backend/app/lifespan.py`, and `backend/app/api/deps.py` are still empty, so the app cannot yet wire services into running API endpoints.
 - Tests are not implemented yet.
 
 ## Recommended Next Milestones
@@ -112,8 +115,8 @@ These files or areas exist but still need implementation:
 2. Add route handlers for auth, users, restaurants, menu, and notifications first because their services already exist.
 3. Add database dependency and current-user authentication dependency.
 4. Fix naming and schema issues that would currently break imports or validation.
-5. Add minimal service tests for auth, user, restaurant, menu, and notifications.
-6. Implement order creation and order item pricing.
+5. Add minimal service tests for auth, user, restaurant, menu, notifications, and orders.
+6. Expand order creation to support multi-item carts if that is part of the intended API.
 7. Implement payment creation and payment status transitions.
 8. Implement delivery tracking and live location updates.
 9. Add websocket connection management and event broadcasting.
@@ -125,6 +128,10 @@ These files or areas exist but still need implementation:
 
 Recent commits show progress in this order:
 
+- Split order lookup helpers into an order query service.
+- Added order service flow for create, update, status changes, and deletion.
+- Added backend environment example.
+- Updated project docs and backend setup notes.
 - Added restaurant service and improved menu service.
 - Fixed schema exports and added notification service.
 - Added notification schema and cleaned schema/model spacing.
