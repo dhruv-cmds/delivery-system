@@ -4,7 +4,7 @@ from pydantic import (
     Field
 )
 
-from app.schemas import (
+from .common import (
 
     NameStr,
     PhoneStr

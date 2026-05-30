@@ -36,9 +36,10 @@ from .exceptions import (
     MenuAlreadyExistsError,
 
     OrderNotFoundError,
-    OrderAlreadyDeliveredError,
     OrderItemNotFoundError,
+    OrderAlreadyDeliveredError,
     InvalidOrderStateError,
+    EmptyOrderError,
 
     PaymentNotFoundError,
     PaymentAlreadyCompletedError,

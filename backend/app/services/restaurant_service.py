@@ -6,8 +6,11 @@ from app.db.models import Restaurant, User
 from app.schemas import RestaurantCreate
 
 from app.core import (
+
     logger,
+
     DatabaseError,
+    
     RestaurantNotFoundError,
     RestaurantAlreadyExistsError,
     PermissionDeniedError,
@@ -73,11 +76,12 @@ async def get_restaurant_by_id(
 
 
 async def update_restaurant(
-    db: AsyncSession,
-    restaurant_id: int,
-    restaurant_data: RestaurantCreate,
-    current_user: User,
-):
+        db: AsyncSession,
+        restaurant_id: int,
+        restaurant_data: RestaurantCreate,
+        current_user: User,
+    ):
+
     restaurant = await get_restaurant_by_id(
         db,
         restaurant_id,

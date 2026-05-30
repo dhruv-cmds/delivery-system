@@ -5,7 +5,7 @@ from pydantic import (
 )
 
 
-from app.schemas import (
+from .common import (
 
     NameStr,
     PasswordStr,

@@ -23,6 +23,16 @@ from .notification_service import (
     delete_notification
 )
 
+from .order_service import (
+
+    create_order,
+    get_all_orders,
+    get_order_by_id,
+    update_order_by_id,
+    update_order_status,
+    delete_order_by_id,
+)
+
 from  .user_service import (
 
     create_user,
