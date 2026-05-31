@@ -1,4 +1,4 @@
-from fastapi import Depends, status, Security
+from fastapi import Depends, Security
 from jose import jwt, JWTError, ExpiredSignatureError
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,8 +9,8 @@ from .dbcon import get_db
 from app.db.models import User
 
 from app.core import (
-    SECRET_KEY, 
-    ALGORITHM,
+    UserRole,
+    setting,
     AdminAccessRequiredError,
     TokenExpiredError,
     InvalidTokenError,
@@ -34,21 +34,23 @@ async def get_current_user(
         payload = jwt.decode(
 
             token, 
-            SECRET_KEY, 
-            algorithms=[ALGORITHM]
+            setting.SECRET_KEY, 
+            algorithms=[setting.ALGORITHM]
         )
 
-        user_id = int(payload.get("sub"))
+        subject = payload.get("sub")
 
-        if user_id is None:
+        if subject is None:
 
             raise InvalidTokenError("Invalid token payload")
+
+        user_id = int(subject)
         
     except ExpiredSignatureError:
 
         raise TokenExpiredError()
     
-    except JWTError:
+    except (JWTError, TypeError, ValueError):
 
         raise InvalidTokenError()
     
@@ -67,7 +69,7 @@ async def get_current_user(
 
 async def get_admin(current_user = Depends(get_current_user)):
 
-    if current_user.role != "admin":
+    if current_user.role != UserRole.ADMIN.value:
 
         raise AdminAccessRequiredError()
     

@@ -5,10 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Order, OrderItem, User
 
-from app.schemas import OrderItemCreate
+from app.schemas import OrderCreate, OrderItemCreate
 
 from app.core import (
+
+    UserRole,
+
     logger,
+    
     DatabaseError,
     EmptyOrderError,
     InvalidOrderStateError,
@@ -16,6 +20,7 @@ from app.core import (
     OrderItemNotFoundError,
     OrderNotFoundError,
     OrderStatus,
+    PermissionDeniedError,
 )
 
 from app.services.order_query_service import (
@@ -33,10 +38,14 @@ FINAL_ORDER_STATUSES = {
 
 async def create_order(
         db: AsyncSession,
-        order_data: OrderItemCreate,
+        order_data: OrderCreate,
         current_user: User,
-        delivery_address: str,
     ):
+
+    if current_user.role != UserRole.CUSTOMER.value:
+
+        logger.warning("Non-customer attempted to create order")
+        raise PermissionDeniedError()
 
     if order_data.quantity <= 0:
 
@@ -54,7 +63,7 @@ async def create_order(
         customer_id=current_user.id,
         restaurant_id=menu_item.restaurant_id,
         total_price=item_total,
-        delivery_address=delivery_address,
+        delivery_address=order_data.delivery_address,
     )
 
     new_order_item = OrderItem(
@@ -95,8 +104,13 @@ async def update_order_by_id(
         db: AsyncSession,
         order_id: int,
         order_data: OrderItemCreate,
-        current_user: User | None = None,
+        current_user: User,
     ):
+
+    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+
+        logger.warning("Delivery partner attempted to update order item")
+        raise PermissionDeniedError()
 
     order = await get_order_by_id(
         db,
@@ -167,8 +181,13 @@ async def update_order_status(
         db: AsyncSession,
         order_id: int,
         status: str,
-        current_user: User | None = None,
+        current_user: User,
     ):
+
+    if current_user.role == UserRole.CUSTOMER.value:
+
+        logger.warning("Customer attempted to update order status")
+        raise PermissionDeniedError()
 
     order = await get_order_by_id(
         db,
@@ -216,6 +235,11 @@ async def delete_order_by_id(
         order_id: int,
         current_user: User
     ):
+
+    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+
+        logger.warning("Delivery partner attempted to delete order")
+        raise PermissionDeniedError()
 
     order = await get_order_by_id(
         db,

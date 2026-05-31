@@ -1,8 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import false, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Menu, Order, User
+from app.db.models import DeliveryPartner, Menu, Order, User
 
 from app.core import (
 
@@ -13,6 +13,32 @@ from app.core import (
     OrderItemNotFoundError,
     OrderNotFoundError,
 )
+
+
+def apply_order_visibility(statement, current_user: User):
+
+    if current_user.role == UserRole.ADMIN.value:
+
+        return statement
+
+    if current_user.role == UserRole.CUSTOMER.value:
+
+        return statement.where(
+            Order.customer_id == current_user.id
+        )
+
+    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+
+        delivery_partner_ids = (
+            select(DeliveryPartner.id)
+            .where(DeliveryPartner.user_id == current_user.id)
+        )
+
+        return statement.where(
+            Order.delivery_partner_id.in_(delivery_partner_ids)
+        )
+
+    return statement.where(false())
 
 
 async def get_menu_item_for_order(
@@ -51,20 +77,7 @@ async def get_all_orders(
         .order_by(Order.created_at.desc())
     )
 
-    if current_user.role == UserRole.ADMIN.value:
-        pass
-
-    elif current_user.role == UserRole.CUSTOMER.value:
-
-        statement = statement.where(
-            Order.customer_id == current_user.id
-        )
-
-    elif current_user.role == UserRole.DELIVERY_PARTNER.value:
-
-        statement = statement.where(
-            Order.delivery_partner_id == current_user.id
-        )
+    statement = apply_order_visibility(statement, current_user)
 
     result = await db.execute(statement)
 
@@ -83,11 +96,7 @@ async def get_order_by_id(
         .where(Order.id == order_id)
     )
 
-    if current_user:
-
-        statement = statement.where(
-            Order.customer_id == current_user.id
-        )
+    statement = apply_order_visibility(statement, current_user)
 
     order_result = await db.execute(statement)
 
