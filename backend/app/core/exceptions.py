@@ -59,6 +59,20 @@ class PermissionDeniedError(DeliverySystemError):
             message=message,
             status_code=status.HTTP_403_FORBIDDEN
         )
+class AdminAccessRequiredError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Admin access required"
+    ):
+        
+        super().__init__(
+
+            error_code="ADMIN_ACCESS_REQUIRED",
+            message=message, 
+            status_code=status.HTTP_403_FORBIDDEN
+        )
 
 class UserAlreadyExistsError(DeliverySystemError):
 

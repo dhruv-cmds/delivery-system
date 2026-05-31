@@ -5,6 +5,9 @@ from sqlalchemy.orm import selectinload
 from app.db.models import Menu, Order, User
 
 from app.core import (
+
+    UserRole,
+    
     logger,
     InvalidOperationError,
     OrderItemNotFoundError,
@@ -48,9 +51,20 @@ async def get_all_orders(
         .order_by(Order.created_at.desc())
     )
 
-    if current_user:
+    if current_user.role == UserRole.ADMIN.value:
+        pass
 
-        statement = statement.where(Order.customer_id == current_user.id)
+    elif current_user.role == UserRole.CUSTOMER.value:
+
+        statement = statement.where(
+            Order.customer_id == current_user.id
+        )
+
+    elif current_user.role == UserRole.DELIVERY_PARTNER.value:
+
+        statement = statement.where(
+            Order.delivery_partner_id == current_user.id
+        )
 
     result = await db.execute(statement)
 
@@ -71,7 +85,9 @@ async def get_order_by_id(
 
     if current_user:
 
-        statement = statement.where(Order.customer_id == current_user.id)
+        statement = statement.where(
+            Order.customer_id == current_user.id
+        )
 
     order_result = await db.execute(statement)
 

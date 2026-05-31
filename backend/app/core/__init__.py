@@ -22,6 +22,8 @@ from .exceptions import (
 
     PermissionDeniedError,
 
+    AdminAccessRequiredError,
+
     UserAlreadyExistsError,
     UserNotFoundError,
 
