@@ -382,6 +382,19 @@ class DeliveryPartnerUnavailableError(DeliverySystemError):
             status_code=status.HTTP_409_CONFLICT
         )
 
+class DeliveryPartnerAlreadyExistsError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Delivery partner already exists"
+    ):
+
+        super().__init__(
+            error_code="DELIVERY_PARTNER_ALREADY_EXISTS",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT
+        )
+
 
 class InvalidOperationError(DeliverySystemError):
 
