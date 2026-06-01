@@ -1,6 +1,6 @@
 # Project Progress
 
-Last updated: 2026-05-30
+Last updated: 2026-06-01
 
 ## Summary
 
@@ -78,6 +78,8 @@ Implemented or partially implemented service-layer logic for:
 - Notification creation, listing, mark-as-read, and deletion.
 - Order menu item validation and customer-scoped order lookup.
 - Single-item order creation, order item updates, status updates, and order deletion with checks for delivered, cancelled, and other final states.
+- Order creation guards for maximum item quantity and maximum order value.
+- Payment creation for orders, payment lookup by payment id and order id, and admin payment status updates that sync the related order payment status.
 
 ## Current Placeholders
 
@@ -87,7 +89,6 @@ These files or areas exist but still need implementation:
 - `backend/app/lifespan.py`
 - `backend/app/api/routes/*.py`
 - `backend/app/repositories/*.py`
-- `backend/app/services/payment_service.py`
 - `backend/app/services/tracking_service.py`
 - `backend/app/services/websocket_service.py`
 - `backend/app/services/redis_service.py`
@@ -106,6 +107,7 @@ These files or areas exist but still need implementation:
 
 - API route files exist, but they are empty. This means the service functions are written, but no HTTP endpoints are available yet for Postman, a browser, or the frontend to call.
 - Order service currently handles a single menu item per order. Multi-item order creation and richer order lifecycle handling still need to be designed.
+- Payment service is implemented, but it still needs API route integration and tests.
 - `backend/app/main.py`, `backend/app/lifespan.py`, and `backend/app/api/deps.py` are still empty, so the app cannot yet wire services into running API endpoints.
 - Tests are not implemented yet.
 
@@ -117,7 +119,7 @@ These files or areas exist but still need implementation:
 4. Fix naming and schema issues that would currently break imports or validation.
 5. Add minimal service tests for auth, user, restaurant, menu, notifications, and orders.
 6. Expand order creation to support multi-item carts if that is part of the intended API.
-7. Implement payment creation and payment status transitions.
+7. Add payment route handlers and service tests.
 8. Implement delivery tracking and live location updates.
 9. Add websocket connection management and event broadcasting.
 10. Add seed data and admin creation scripts.
@@ -128,6 +130,8 @@ These files or areas exist but still need implementation:
 
 Recent commits show progress in this order:
 
+- Completed payment service functions for create, lookup, and status updates.
+- Added order creation limits for quantity and total transfer amount.
 - Split order lookup helpers into an order query service.
 - Added order service flow for create, update, status changes, and deletion.
 - Added backend environment example.

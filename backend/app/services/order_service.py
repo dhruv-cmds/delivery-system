@@ -11,6 +11,9 @@ from app.core import (
 
     UserRole,
 
+    MAX_ORDER_TIMES,
+    MAX_TRANSFER_LIMIT,
+
     logger,
     
     DatabaseError,
@@ -21,6 +24,7 @@ from app.core import (
     OrderNotFoundError,
     OrderStatus,
     PermissionDeniedError,
+    InvalidOperationError
 )
 
 from app.services.order_query_service import (
@@ -51,6 +55,16 @@ async def create_order(
 
         logger.warning("Order attempted with non-positive quantity")
         raise EmptyOrderError("Order item quantity must be greater than zero")
+    
+    if order_data.quantity > 20:
+
+        logger.warning(
+            f"Max order item limit exicuted"
+            f"You can make 20 orders at the same time"
+        )
+
+        raise InvalidOperationError()
+    
 
     menu_item = await get_menu_item_for_order(
         db,
@@ -58,6 +72,15 @@ async def create_order(
     )
 
     item_total = menu_item.price * Decimal(order_data.quantity)
+
+    if item_total > 50000:
+
+        logger.warning(
+            f"Max transer limit exicuted."
+            f"You Cannot make order that price is more the 50000"
+        )
+
+        raise InvalidOperationError()
 
     new_order = Order(
         customer_id=current_user.id,

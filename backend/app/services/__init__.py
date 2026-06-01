@@ -55,6 +55,15 @@ from .order_service import (
 )
 
 
+from .payment_service import (
+
+    make_payment,
+    get_payment_by_id,
+    get_payment_by_order_id,
+    update_payment_status,
+)
+
+
 from .restaurant_service import (
 
     create_restaurant,
