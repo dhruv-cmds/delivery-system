@@ -1,7 +1,19 @@
 from .auth_service import (
 
     sign_up,
-    login,
+    login
+)
+
+
+from .delivery_partner_service import (
+
+    create_delivery_partner,
+    get_delivery_partner_by_user_id,
+    get_delivery_partner_by_id,
+    get_all_delivery_partners,
+    update_delivery_partner,
+    update_location,
+    delete_delivery_partner,
 )
 
 
@@ -15,6 +27,7 @@ from .menu_service import (
     change_menu_status
 )
 
+
 from .notification_service import (
 
     create_notification,
@@ -23,15 +36,40 @@ from .notification_service import (
     delete_notification
 )
 
+
+from .order_query_service import (
+
+    apply_order_visibility,
+    get_menu_item_for_order,
+    get_all_orders,
+    get_order_by_id
+)
+
+
 from .order_service import (
 
     create_order,
-    get_all_orders,
-    get_order_by_id,
     update_order_by_id,
     update_order_status,
-    delete_order_by_id,
+    delete_order_by_id
 )
+
+
+from .restaurant_service import (
+
+    create_restaurant,
+    get_restaurant_by_id,
+    update_restaurant,
+    delete_restaurant_by_id
+)
+
+
+from .tracking_service import (
+
+    create_tracking,
+    get_tracking_by_order
+)
+
 
 from  .user_service import (
 
