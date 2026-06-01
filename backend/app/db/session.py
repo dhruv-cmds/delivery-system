@@ -27,17 +27,18 @@ if ENV == "docker":
     DB_HOST = "delivery-db"
     DB_PORT = "3306"
 
-else:
+elif ENV == "dev":
     DB_HOST = "127.0.0.1"
-    DB_PORT = "3010"
+    DB_PORT = "3306"
 
+else:
+    raise ValueError(f"Unknowen ENV: {ENV}")
 
 DATABASE_URL = (
     f"mysql+aiomysql://"
     f"{DB_USER}:{DB_PASSWORD}"
     f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
-
 
 engine = create_async_engine (
 

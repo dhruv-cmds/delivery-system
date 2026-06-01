@@ -9,9 +9,13 @@ from .dbcon import get_db
 from app.db.models import User
 
 from app.core import (
+
     UserRole,
+
     setting,
+
     AdminAccessRequiredError,
+    PermissionDeniedError,
     TokenExpiredError,
     InvalidTokenError,
     UserNotFoundError,
@@ -73,4 +77,18 @@ async def get_admin(current_user = Depends(get_current_user)):
 
         raise AdminAccessRequiredError()
     
+    return current_user
+
+
+async def get_admin_or_customer(
+        current_user = Depends(get_current_user)
+    ):
+
+    if current_user.role not in [
+
+            UserRole.ADMIN.value,
+            UserRole.CUSTOMER.value
+        ]:
+            raise PermissionDeniedError()
+
     return current_user

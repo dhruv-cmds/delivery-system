@@ -94,6 +94,18 @@ async def get_user_by_id (
     
     return user
 
+
+async def get_all_users (
+        db:AsyncSession,
+    ):
+
+    result = await db.execute(
+        select(User)
+    )
+
+    return result.scalars().all()
+    
+
 async def get_user_by_email(
         db:AsyncSession,
         user_email: str
