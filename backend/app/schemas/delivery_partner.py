@@ -19,7 +19,7 @@ class DeliveryPartnerCreate(DeliveryPartnerBase):
 class DeliveryPartnerResponse(DeliveryPartnerBase):
 
     id: int = Field(..., examples=[603])
-    user_id: int | None = Field(None, examples=[79])
+    user_id: int = Field(None, examples=[79])
     status: str = Field(..., examples=["PENDING"]) 
 
     rating: Decimal | None = Field(None, examples=[5.00, 3.9])
