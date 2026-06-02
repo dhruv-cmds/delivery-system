@@ -20,8 +20,8 @@ router = APIRouter(tags=["Users"])
 @router.get(
     "/id/{user_id}",
     response_model=UserResponse,
-    summary="Get user by id number",
-    description="Recive a details of a specific user"
+    summary="Get a user by ID",
+    description="Return the profile details for a specific user ID."
 )
 @limiter.limit("3/second")
 async def get_user_by_id(
@@ -40,8 +40,8 @@ async def get_user_by_id(
 @router.get(
     "/all_users",
     response_model=list[UserResponse],
-    summary="Get all users",
-    description="Recive details of all users"
+    summary="List all users",
+    description="Return every user account. This endpoint is available to admins only."
 )
 @limiter.limit("3/second")
 async def get_all_users(
@@ -56,8 +56,8 @@ async def get_all_users(
 @router.get(
     "/email/{user_email}",
     response_model=UserResponse,
-    summary="Get a users by email",
-    description="Recive details of a user by email"
+    summary="Get a user by email",
+    description="Return the profile details for the user with the given email address."
 )
 @limiter.limit("3/second")
 async def get_user_by_email(
@@ -76,8 +76,8 @@ async def get_user_by_email(
 @router.get(
     "/username/{username}",
     response_model=UserResponse,
-    summary="Get a users by username",
-    description="Recive details of a user by username"
+    summary="Get a user by username",
+    description="Return the profile details for the user with the given username."
 )
 @limiter.limit("3/second")
 async def get_user_by_username(

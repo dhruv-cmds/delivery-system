@@ -19,10 +19,10 @@ router = APIRouter(tags=["Authentication"])
 @router.post(
     "/signup",
     response_model=UserResponse,
-    summary="User Registration",
+    summary="Create a user account",
     description=(
-        "Create a new user."
-        "Password are hashed and User's username need to be unique"
+        "Register a new user account. The password is hashed before storage, "
+        "and the username must be unique."
     )
 )
 @limiter.limit("3/second")
@@ -41,10 +41,10 @@ async def sign_up(
 @router.post(
     "/login",
     response_model=TokenResponse,
-    summary="User login and obtain JWT bearer token",
+    summary="Log in and get an access token",
     description=(
-        "Authenticate with email and password to receive an access token. "
-        "Use the returned Bearer token for protected endpoints via the Authorization header."
+        "Authenticate with an email address and password. Returns a JWT bearer "
+        "token that can be used in the Authorization header for protected endpoints."
     )
 )
 @limiter.limit("5/minute")

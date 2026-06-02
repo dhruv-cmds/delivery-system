@@ -10,7 +10,6 @@ from app.api import get_db
 from app.api import (
     get_current_user,
     get_menu_manager,
-    get_admin
 )
 
 router = APIRouter(
@@ -22,8 +21,11 @@ router = APIRouter(
 @router.post(
     "/create_menu",
     response_model=MenuResponse,
-    summary="Create a menu for restaurant",
-    description="Menu that provice list of time that restaurant has"
+    summary="Create a menu item",
+    description=(
+        "Create a menu item for a restaurant. Only admins and restaurant owners "
+        "can create menu items."
+    )
 )
 @limiter.limit("3/second")
 async def create_menu_item(
@@ -43,8 +45,8 @@ async def create_menu_item(
 @router.get(
     "/id/{menu_id}",
     response_model=MenuResponse,
-    summary="Get menu item by id",
-    description="Recive a detail of a specifi menu item"
+    summary="Get a menu item by ID",
+    description="Return the details for a specific menu item."
 )
 @limiter.limit("3/second")
 async def get_menu_item_by_id(
@@ -62,8 +64,8 @@ async def get_menu_item_by_id(
 @router.get(
     "/id/{restaurant_id}",
     response_model=list[MenuResponse],
-    summary="Get menu item by id",
-    description="Recive a detail of menu items by restaurant id"
+    summary="List menu items by restaurant",
+    description="Return all menu items that belong to the given restaurant."
 )
 @limiter.limit("3/second")
 async def get_menu_items_by_restaurant_id(
@@ -81,8 +83,11 @@ async def get_menu_items_by_restaurant_id(
 @router.post(
     "/update_menu/{menu_id}",
     response_model=MenuResponse,
-    summary="Update menu item by id",
-    description="Update a details of menu items by menu id"
+    summary="Update a menu item",
+    description=(
+        "Update a menu item's details. Only admins and the restaurant owner "
+        "can update the item."
+    )
 )
 @limiter.limit("3/second")
 async def update_menu_item(
@@ -104,8 +109,11 @@ async def update_menu_item(
 @router.delete(
     "/delete_menu/{menu_id}",
     response_model=MenuResponse,
-    summary="Delete menu item by id",
-    description="Delete a menu by menu id"
+    summary="Delete a menu item",
+    description=(
+        "Delete a menu item by ID. Only admins and the restaurant owner can "
+        "delete the item."
+    )
 )
 @limiter.limit("3/second")
 async def delete_menu_item(
@@ -125,8 +133,11 @@ async def delete_menu_item(
 @router.post(
     "/change_status/{menu_id}",
     response_model=MenuResponse,
-    summary="Change menu status by id",
-    description="Change a menu status by menu id"
+    summary="Change a menu item's status",
+    description=(
+        "Update the availability status for a menu item. Only admins and the "
+        "restaurant owner can change the status."
+    )
 )
 @limiter.limit("3/second")
 async def change_menu_status(
