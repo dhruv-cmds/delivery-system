@@ -4,7 +4,7 @@ A FastAPI-based backend for a food delivery platform. The project is being built
 
 ## Current Status
 
-This project is under active development. Core database models, validation schemas, authentication helpers, and several service-layer modules are in place. Order creation, lookup, update, status transition, deletion, and payment logic has also been added at the service layer. API route handlers, tests, websocket handlers, background tasks, frontend work, and load test scripts are currently scaffolded or pending implementation.
+This project is under active development. Core database models, validation schemas, authentication helpers, dependency wiring, and several service-layer modules are in place. Auth, user, health, and menu API routes are wired into the FastAPI application. Order creation, lookup, update, status transition, deletion, and payment logic has also been added at the service layer. Tests, websocket handlers, background tasks, frontend work, and load test scripts are currently scaffolded or pending implementation.
 
 ## Tech Stack
 
@@ -69,10 +69,16 @@ Relationships are defined between users, restaurants, orders, menu items, delive
 - Password hashing and verification.
 - Custom HTTP exception classes with structured error responses.
 - Pydantic schemas for users, auth, restaurants, menu items, orders, payments, delivery partners, notifications, and websocket messages.
+- FastAPI application entrypoint with database table initialization during app lifespan.
+- API dependency helpers for database sessions, JWT-authenticated users, admin-only access, and menu manager access.
+- Auth API routes for signup and login.
+- User API routes for authenticated lookup and admin-only user listing.
+- Health API route with database connectivity check.
+- Menu API routes for create, lookup, restaurant-scoped listing, update, delete, and status changes.
 - User service for creating users and fetching users by id, email, or username.
 - Auth service for signup and login.
-- Restaurant service for create, read, update, and delete operations with ownership checks.
-- Menu service for create, read, update, delete, and availability status changes with owner authorization.
+- Restaurant service for create, read, update, and delete operations with ownership checks, including customer promotion to restaurant owner during restaurant creation.
+- Menu service for create, read, update, delete, and availability status changes with admin and restaurant owner authorization.
 - Notification service for creating, listing, marking as read, and deleting notifications.
 - Order query service for fetching available menu items for orders and retrieving customer-scoped orders.
 - Order service for single-item order creation, updating order items, status changes, and deletion with final-state, quantity, and order-value guards.
@@ -133,7 +139,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Then run the API once `backend/app/main.py` is implemented:
+Then run the API:
 
 ```bash
 uvicorn backend.app.main:app --reload
@@ -141,8 +147,9 @@ uvicorn backend.app.main:app --reload
 
 ## Development Notes
 
-- `backend/app/main.py` is currently empty, so the FastAPI app entrypoint still needs to be created.
-- API route files are currently placeholders.
+- `backend/app/main.py` currently recreates database tables during application startup. This is useful for early development but should be replaced with migrations before production use.
+- Auth, user, health, and menu route files are implemented and registered.
+- Restaurant, notification, order, payment, tracking, and websocket route modules still need integration or completion.
 - Repository modules are currently placeholders.
 - Tracking, websocket, Redis, analytics, and background task services are currently placeholders.
 - Payment service is implemented, but payment API routes and tests still need to be added.
@@ -152,14 +159,13 @@ uvicorn backend.app.main:app --reload
 
 ## Suggested Next Steps
 
-1. Implement the FastAPI application entrypoint in `backend/app/main.py`.
-2. Add dependency wiring for async database sessions and authenticated users.
-3. Implement route handlers for auth, users, restaurants, menu, notifications, orders, payments, tracking, and websockets.
-4. Add migrations with Alembic or a clear database initialization strategy.
+1. Replace startup table recreation with Alembic migrations or a clear database initialization strategy.
+2. Implement route handlers for restaurants, notifications, orders, payments, tracking, and websockets.
+3. Add focused tests for auth, user, menu, restaurant, order, and payment flows.
+4. Fix menu route path overlap between menu id and restaurant id lookups.
 5. Expand order business logic beyond the current single-item service flow.
-6. Add payment route handlers and tests for services and API routes.
-7. Seed useful development data.
-8. Implement k6 load tests after stable API endpoints exist.
+6. Seed useful development data.
+7. Implement k6 load tests after stable API endpoints exist.
 
 ## License
 

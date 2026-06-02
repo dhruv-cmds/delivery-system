@@ -1,12 +1,12 @@
 # Project Progress
 
-Last updated: 2026-06-01
+Last updated: 2026-06-03
 
 ## Summary
 
-The Delivery System project currently has a backend-first foundation. The database model layer, Pydantic schemas, core security helpers, custom exceptions, and several business services have been added. The project also has Docker Compose support for the API and MySQL database.
+The Delivery System project currently has a backend-first foundation. The database model layer, Pydantic schemas, core security helpers, custom exceptions, dependency wiring, API route handlers for auth/users/health/menu, and several business services have been added. The project also has Docker Compose support for the API and MySQL database.
 
-The main remaining work is to connect these backend pieces through FastAPI route handlers, complete missing service modules, add database migrations or initialization flow, write tests, and build the frontend/realtime/load-testing layers.
+The main remaining work is to connect the remaining service modules through FastAPI route handlers, add database migrations or a safer initialization flow, write tests, and build the frontend/realtime/load-testing layers.
 
 ## Completed So Far
 
@@ -28,6 +28,9 @@ The main remaining work is to connect these backend pieces through FastAPI route
 - Added shared constants for user roles, order status, payment status, and limits.
 - Added application logger.
 - Added structured custom exceptions for users, auth, restaurants, menus, orders, payments, delivery partners, permissions, and database errors.
+- Added FastAPI app entrypoint that registers auth, user, health, and menu routers.
+- Added API dependency helpers for database sessions, JWT-authenticated users, admin access, and menu manager access.
+- Added `RESTAURANT_OWNER` user role for restaurant/menu ownership flows.
 
 ### Database Models
 
@@ -81,13 +84,28 @@ Implemented or partially implemented service-layer logic for:
 - Order creation guards for maximum item quantity and maximum order value.
 - Payment creation for orders, payment lookup by payment id and order id, and admin payment status updates that sync the related order payment status.
 
+### API Routes
+
+Implemented API route handlers for:
+
+- Auth signup and login.
+- User lookup by id, email, and username.
+- Admin-only user listing.
+- Health check with database connectivity.
+- Menu item creation, lookup by menu id, listing by restaurant id, update, delete, and status changes.
+
+Menu management is restricted to admins and restaurant owners. Customer users are promoted to restaurant owners when they create a restaurant.
+
 ## Current Placeholders
 
 These files or areas exist but still need implementation:
 
-- `backend/app/main.py`
 - `backend/app/lifespan.py`
-- `backend/app/api/routes/*.py`
+- `backend/app/api/routes/restaurants.py`
+- `backend/app/api/routes/orders.py`
+- `backend/app/api/routes/payment.py`
+- `backend/app/api/routes/tracking.py`
+- `backend/app/api/routes/websocket.py`
 - `backend/app/repositories/*.py`
 - `backend/app/services/tracking_service.py`
 - `backend/app/services/websocket_service.py`
@@ -105,31 +123,33 @@ These files or areas exist but still need implementation:
 
 ## Known Issues To Fix
 
-- API route files exist, but they are empty. This means the service functions are written, but no HTTP endpoints are available yet for Postman, a browser, or the frontend to call.
+- Restaurant, order, payment, tracking, and websocket API route modules still need to be completed and registered.
+- Menu routes currently use overlapping `"/id/{...}"` paths for menu id and restaurant id lookups, so the restaurant-scoped listing path should be renamed.
 - Order service currently handles a single menu item per order. Multi-item order creation and richer order lifecycle handling still need to be designed.
 - Payment service is implemented, but it still needs API route integration and tests.
-- `backend/app/main.py`, `backend/app/lifespan.py`, and `backend/app/api/deps.py` are still empty, so the app cannot yet wire services into running API endpoints.
+- `backend/app/main.py` currently drops and recreates all tables during startup, which should be replaced before any persistent environment is used.
 - Tests are not implemented yet.
 
 ## Recommended Next Milestones
 
-1. Build the FastAPI app entrypoint in `backend/app/main.py`.
-2. Add route handlers for auth, users, restaurants, menu, and notifications first because their services already exist.
-3. Add database dependency and current-user authentication dependency.
-4. Fix naming and schema issues that would currently break imports or validation.
-5. Add minimal service tests for auth, user, restaurant, menu, notifications, and orders.
-6. Expand order creation to support multi-item carts if that is part of the intended API.
-7. Add payment route handlers and service tests.
-8. Implement delivery tracking and live location updates.
-9. Add websocket connection management and event broadcasting.
-10. Add seed data and admin creation scripts.
-11. Add k6 scripts after endpoints stabilize.
-12. Start frontend implementation after backend API contracts are stable.
+1. Replace startup table recreation with migrations or a safer initialization flow.
+2. Fix the overlapping menu lookup route paths.
+3. Add route handlers for restaurants, notifications, orders, and payments.
+4. Add minimal service and API tests for auth, user, restaurant, menu, notifications, and orders.
+5. Expand order creation to support multi-item carts if that is part of the intended API.
+6. Add payment route handlers and service tests.
+7. Implement delivery tracking and live location updates.
+8. Add websocket connection management and event broadcasting.
+9. Add seed data and admin creation scripts.
+10. Add k6 scripts after endpoints stabilize.
+11. Start frontend implementation after backend API contracts are stable.
 
 ## Recent Git Progress
 
 Recent commits show progress in this order:
 
+- Added menu routes and restaurant owner permissions.
+- Added auth and user API routes.
 - Completed payment service functions for create, lookup, and status updates.
 - Added order creation limits for quantity and total transfer amount.
 - Split order lookup helpers into an order query service.
