@@ -55,12 +55,16 @@ async def get_menu_item_for_order(
 
     if not menu_item:
 
-        logger.warning("Menu item not found while processing order")
+        logger.warning(
+            "Order processing failed because the menu item was not found"
+        )
         raise OrderItemNotFoundError("Menu item not found")
 
     if menu_item.status != "AVAILABLE":
 
-        logger.warning("Unavailable menu item used while processing order")
+        logger.warning(
+            "Order processing failed because the menu item is unavailable"
+        )
         raise InvalidOperationError("Menu item is not available")
 
     return menu_item
@@ -104,7 +108,7 @@ async def get_order_by_id(
 
     if not order:
 
-        logger.warning("Order not found")
+        logger.warning("Order lookup failed because the order was not found")
         raise OrderNotFoundError()
     
     return order

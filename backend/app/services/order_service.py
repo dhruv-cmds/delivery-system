@@ -48,19 +48,22 @@ async def create_order(
 
     if current_user.role != UserRole.CUSTOMER.value:
 
-        logger.warning("Non-customer attempted to create order")
+        logger.warning(
+            "Order creation denied because the user is not a customer"
+        )
         raise PermissionDeniedError()
 
     if order_data.quantity <= 0:
 
-        logger.warning("Order attempted with non-positive quantity")
+        logger.warning(
+            "Order creation failed because the quantity was not positive"
+        )
         raise EmptyOrderError("Order item quantity must be greater than zero")
     
     if order_data.quantity > 20:
 
         logger.warning(
-            f"Max order item limit exicuted"
-            f"You can make 20 orders at the same time"
+            "Order creation failed because the quantity is above the allowed limit"
         )
 
         raise InvalidOperationError()
@@ -76,8 +79,7 @@ async def create_order(
     if item_total > 50000:
 
         logger.warning(
-            f"Max transer limit exicuted."
-            f"You Cannot make order that price is more the 50000"
+            "Order creation failed because the total price is above the transfer limit"
         )
 
         raise InvalidOperationError()
@@ -112,7 +114,7 @@ async def create_order(
 
         await db.rollback()
 
-        logger.exception("Integrity error while creating order")
+        logger.exception("Database integrity error while creating order")
         raise OrderItemNotFoundError()
 
     except Exception:
@@ -132,7 +134,9 @@ async def update_order_by_id(
 
     if current_user.role == UserRole.DELIVERY_PARTNER.value:
 
-        logger.warning("Delivery partner attempted to update order item")
+        logger.warning(
+            "Order item update denied because delivery partners cannot update order items"
+        )
         raise PermissionDeniedError()
 
     order = await get_order_by_id(
@@ -143,17 +147,23 @@ async def update_order_by_id(
 
     if order.status == OrderStatus.DELIVERED.value:
 
-        logger.warning("Delivered order update attempted")
+        logger.warning(
+            "Order item update denied because the order is already delivered"
+        )
         raise OrderAlreadyDeliveredError()
 
     if order.status in FINAL_ORDER_STATUSES:
 
-        logger.warning("Final order update attempted")
+        logger.warning(
+            "Order item update denied because the order is in a final state"
+        )
         raise InvalidOrderStateError(order.status)
 
     if order_data.quantity <= 0:
 
-        logger.warning("Order update attempted with non-positive quantity")
+        logger.warning(
+            "Order item update failed because the quantity was not positive"
+        )
         raise EmptyOrderError("Order item quantity must be greater than zero")
 
     menu_item = await get_menu_item_for_order(
@@ -165,7 +175,9 @@ async def update_order_by_id(
 
     if not order_item:
 
-        logger.warning("Order item not found while updating order")
+        logger.warning(
+            "Order item update failed because the order item was not found"
+        )
         raise OrderItemNotFoundError()
 
     item_total = menu_item.price * Decimal(order_data.quantity)
@@ -189,7 +201,7 @@ async def update_order_by_id(
 
         await db.rollback()
 
-        logger.exception("Integrity error while updating order")
+        logger.exception("Database integrity error while updating order")
         raise OrderItemNotFoundError()
 
     except Exception:
@@ -209,7 +221,9 @@ async def update_order_status(
 
     if current_user.role == UserRole.CUSTOMER.value:
 
-        logger.warning("Customer attempted to update order status")
+        logger.warning(
+            "Order status update denied because customers cannot update order status"
+        )
         raise PermissionDeniedError()
 
     order = await get_order_by_id(
@@ -220,19 +234,25 @@ async def update_order_status(
 
     if order.status == OrderStatus.DELIVERED.value:
 
-        logger.warning("Delivered order status update attempted")
+        logger.warning(
+            "Order status update denied because the order is already delivered"
+        )
         raise OrderAlreadyDeliveredError()
 
     if order.status == OrderStatus.CANCELLED.value:
 
-        logger.warning("Cancelled order status update attempted")
+        logger.warning(
+            "Order status update denied because the order is already cancelled"
+        )
         raise InvalidOrderStateError(order.status)
 
     valid_statuses = {order_status.value for order_status in OrderStatus}
 
     if status not in valid_statuses:
 
-        logger.warning("Invalid order status update attempted")
+        logger.warning(
+            "Order status update failed because the requested status is invalid"
+        )
         raise InvalidOrderStateError(status)
 
     order.status = status
@@ -261,7 +281,9 @@ async def delete_order_by_id(
 
     if current_user.role == UserRole.DELIVERY_PARTNER.value:
 
-        logger.warning("Delivery partner attempted to delete order")
+        logger.warning(
+            "Order deletion denied because delivery partners cannot delete orders"
+        )
         raise PermissionDeniedError()
 
     order = await get_order_by_id(
@@ -272,12 +294,16 @@ async def delete_order_by_id(
 
     if order.status == OrderStatus.DELIVERED.value:
 
-        logger.warning("Delivered order delete attempted")
+        logger.warning(
+            "Order deletion denied because the order is already delivered"
+        )
         raise OrderAlreadyDeliveredError()
 
     if order.status in FINAL_ORDER_STATUSES:
 
-        logger.warning("Final order delete attempted")
+        logger.warning(
+            "Order deletion denied because the order is in a final state"
+        )
         raise InvalidOrderStateError(order.status)
 
     try:
@@ -292,7 +318,7 @@ async def delete_order_by_id(
 
         await db.rollback()
 
-        logger.exception("Integrity error while deleting order")
+        logger.exception("Database integrity error while deleting order")
         raise OrderNotFoundError()
 
     except Exception:

@@ -79,7 +79,9 @@ async def mark_notification_as_read(
 
     if not notification:
 
-        logger.warning("No notification to read")
+        logger.warning(
+            "Notification read failed because the notification was not found"
+        )
         return None
     
     notification.status = "READ"
@@ -119,7 +121,9 @@ async def delete_notification(
 
     if not notification:
 
-        logger.warning("No notification to delete")
+        logger.warning(
+            "Notification deletion failed because the notification was not found"
+        )
 
         return None
 

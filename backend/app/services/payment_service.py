@@ -47,7 +47,9 @@ async def make_payment(
 
     if current_user.role != UserRole.CUSTOMER.value:
 
-        logger.warning("Non-customer attempted to make payment")
+        logger.warning(
+            "Payment creation denied because the user is not a customer"
+        )
         raise PermissionDeniedError()
     
     order = await get_order_by_id(
@@ -65,7 +67,9 @@ async def make_payment(
 
     if existing_payment and existing_payment.status == PaymentStatus.SUCCESS.value:
 
-        logger.warning("Completed payment attempted again")
+        logger.warning(
+            "Payment creation skipped because the order is already paid"
+        )
         raise PaymentAlreadyCompletedError()
 
     status = PaymentStatus.PENDING.value
@@ -115,7 +119,7 @@ async def make_payment(
 
         await db.rollback()
 
-        logger.exception("Integrity error while creating payment")
+        logger.exception("Database integrity error while creating payment")
         raise PaymentNotFoundError()
 
     except Exception:
@@ -146,7 +150,9 @@ async def get_payment_by_id(
 
     if not payment:
 
-        logger.warning("Payment not found")
+        logger.warning(
+            "Payment lookup failed because the payment was not found"
+        )
         raise PaymentNotFoundError()
 
     return payment
@@ -173,7 +179,9 @@ async def get_payment_by_order_id(
 
     if not payment:
 
-        logger.warning("Payment not found for order")
+        logger.warning(
+            "Payment lookup failed because no payment exists for the order"
+        )
         raise PaymentNotFoundError()
 
     return payment
@@ -188,14 +196,18 @@ async def update_payment_status(
 
     if current_user.role != UserRole.ADMIN.value:
 
-        logger.warning("Non-admin attempted to update payment status")
+        logger.warning(
+            "Payment status update denied because the user is not an admin"
+        )
         raise PermissionDeniedError()
 
     valid_statuses = {payment_status.value for payment_status in PaymentStatus}
 
     if status not in valid_statuses:
 
-        logger.warning("Invalid payment status update attempted")
+        logger.warning(
+            "Payment status update failed because the requested status is invalid"
+        )
         raise InvalidOperationError(f"Invalid payment status '{status}'")
 
     result = await db.execute(
@@ -209,7 +221,9 @@ async def update_payment_status(
 
     if not payment:
 
-        logger.warning("Payment not found")
+        logger.warning(
+            "Payment status update failed because the payment was not found"
+        )
         raise PaymentNotFoundError()
 
     if (
@@ -217,7 +231,9 @@ async def update_payment_status(
         and status == PaymentStatus.SUCCESS.value
     ):
 
-        logger.warning("Completed payment marked successful again")
+        logger.warning(
+            "Payment status update skipped because the payment is already successful"
+        )
         raise PaymentAlreadyCompletedError()
 
     payment.status = status
@@ -245,7 +261,7 @@ async def update_payment_status(
 
         await db.rollback()
 
-        logger.exception("Integrity error while updating payment status")
+        logger.exception("Database integrity error while updating payment status")
         raise PaymentNotFoundError()
 
     except Exception:

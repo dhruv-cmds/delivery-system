@@ -39,7 +39,7 @@ async def create_delivery_partner(
     if existing.scalar_one_or_none():
 
         logger.warning(
-            "Delivery partner profile already exists"
+            "Delivery partner creation skipped because the profile already exists"
         )
 
         raise DeliveryPartnerAlreadyExistsError()
@@ -66,7 +66,7 @@ async def create_delivery_partner(
         await db.rollback()
 
         logger.exception(
-            "Integrity error while creating delivery partner"
+            "Database integrity error while creating delivery partner"
         )
 
         raise DeliveryPartnerAlreadyExistsError()
@@ -99,7 +99,7 @@ async def get_delivery_partner_by_user_id(
     if not partner:
 
         logger.warning(
-            "Delivery partner not found"
+            "Delivery partner lookup failed because the profile was not found"
         )
 
         raise DeliveryPartnerNotFoundError()
@@ -124,7 +124,7 @@ async def get_delivery_partner_by_id(
     if not partner:
 
         logger.warning(
-            "Delivery partner not found"
+            "Delivery partner lookup failed because the profile was not found"
         )
 
         raise DeliveryPartnerNotFoundError()
@@ -141,7 +141,7 @@ async def get_all_delivery_partners(
     if current_user.role != UserRole.ADMIN.value:
 
         logger.warning(
-            "Non-admin attempted to access all delivery partners"
+            "Delivery partner listing denied because the user is not an admin"
         )
 
         raise PermissionDeniedError()
@@ -174,7 +174,7 @@ async def update_delivery_partner(
     ):
 
         logger.warning(
-            "Unauthorized delivery partner update attempt"
+            "Delivery partner update denied because the user does not own the profile"
         )
 
         raise PermissionDeniedError()
@@ -219,7 +219,7 @@ async def update_location(
     ):
 
         logger.warning(
-            "Unauthorized location update attempt"
+            "Location update denied because the user does not own the delivery partner profile"
         )
 
         raise PermissionDeniedError()
@@ -240,7 +240,7 @@ async def update_location(
         await db.rollback()
 
         logger.exception(
-            "Unexpected error while updating location"
+            "Unexpected error while updating delivery partner location"
         )
 
         raise DatabaseError()
@@ -263,7 +263,7 @@ async def delete_delivery_partner(
     ):
 
         logger.warning(
-            "Unauthorized delivery partner delete attempt"
+            "Delivery partner deletion denied because the user does not own the profile"
         )
 
         raise PermissionDeniedError()

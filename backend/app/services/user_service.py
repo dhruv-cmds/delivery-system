@@ -38,7 +38,7 @@ async def create_user(
 
     if exist:
 
-        logger.warning("User already exists")
+        logger.warning("User creation skipped because the account already exists")
         raise UserAlreadyExistsError()
     
     
@@ -64,14 +64,14 @@ async def create_user(
 
         await db.rollback()
 
-        logger.exception("Integrity error while creating user")
+        logger.exception("Database integrity error while creating user")
         raise UserAlreadyExistsError()
     
     except Exception:
 
         await db.rollback()
 
-        logger.exception("Unexpected error while creating user")
+        logger.exception("Unexpected error while creating user account")
         raise DatabaseError()
     
 
@@ -89,7 +89,7 @@ async def get_user_by_id (
 
     if not user:
 
-        logger.warning("User not found")
+        logger.warning("User lookup failed because the user was not found")
         raise UserNotFoundError()
     
     return user

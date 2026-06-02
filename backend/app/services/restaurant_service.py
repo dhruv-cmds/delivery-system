@@ -50,7 +50,7 @@ async def create_restaurant(
 
         await db.rollback()
 
-        logger.exception("Integrity error while creating restaurant")
+        logger.exception("Database integrity error while creating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
@@ -75,7 +75,9 @@ async def get_restaurant_by_id(
     restaurant = result.scalar_one_or_none()
 
     if not restaurant:
-        logger.warning("Restaurant not found")
+        logger.warning(
+            "Restaurant lookup failed because the restaurant was not found"
+        )
         raise RestaurantNotFoundError()
 
     return restaurant
@@ -96,7 +98,7 @@ async def update_restaurant(
     if restaurant.owner_id != current_user.id:
 
         logger.warning(
-            "User attempted to update restaurant they do not own"
+            "Restaurant update denied because the user does not own the restaurant"
         )
         raise PermissionDeniedError()
 
@@ -115,7 +117,7 @@ async def update_restaurant(
 
         await db.rollback()
 
-        logger.exception("Integrity error while updating restaurant")
+        logger.exception("Database integrity error while updating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
@@ -141,7 +143,7 @@ async def delete_restaurant_by_id(
     if restaurant.owner_id != current_user.id:
 
         logger.warning(
-            "User attempted to delete restaurant they do not own"
+            "Restaurant deletion denied because the user does not own the restaurant"
         )
         raise PermissionDeniedError()
 

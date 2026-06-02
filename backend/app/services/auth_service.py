@@ -31,12 +31,12 @@ async def login(
 
     if not user:
         
-        logger.warning("Invalid login attempt")
+        logger.warning("Login failed because the email address was not found")
         raise InvalidCredentialsError()
     
     if not verify_password(password, user.hashed_password):
 
-        logger.warning("Invalid login attempt")
+        logger.warning("Login failed because the password was incorrect")
         raise InvalidCredentialsError()
     
     token = create_access_token(

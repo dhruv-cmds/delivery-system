@@ -34,7 +34,7 @@ async def create_tracking(
         await db.rollback()
 
         logger.exception(
-            "Unexpected error while creating tracking"
+            "Unexpected error while creating order tracking update"
         )
 
         raise DatabaseError()
