@@ -80,15 +80,13 @@ async def get_admin(current_user = Depends(get_current_user)):
     return current_user
 
 
-async def get_admin_or_customer(
-        current_user = Depends(get_current_user)
+async def get_menu_manager(current_user = Depends(get_current_user)):
+
+    if current_user.role not in (
+        UserRole.ADMIN.value,
+        UserRole.RESTAURANT_OWNER.value
     ):
 
-    if current_user.role not in [
-
-            UserRole.ADMIN.value,
-            UserRole.CUSTOMER.value
-        ]:
-            raise PermissionDeniedError()
-
+        raise PermissionDeniedError()
+    
     return current_user

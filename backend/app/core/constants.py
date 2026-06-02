@@ -5,6 +5,7 @@ class UserRole(str, Enum):
     CUSTOMER = "CUSTOMER"
     DELIVERY_PARTNER = "DELIVERY_PARTNER"
     ADMIN = "ADMIN"
+    RESTAURANT_OWNER = "RESTAURANT_OWNER"
 
 class OrderStatus(str, Enum):
 

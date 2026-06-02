@@ -9,6 +9,8 @@ from app.core import (
 
     logger,
 
+    UserRole,
+
     DatabaseError,
     
     RestaurantNotFoundError,
@@ -34,6 +36,10 @@ async def create_restaurant(
     try:
         db.add(new_restaurant)
 
+        if current_user.role == UserRole.CUSTOMER.value:
+
+            current_user.role = UserRole.RESTAURANT_OWNER.value
+        
         await db.commit()
 
         await db.refresh(new_restaurant)

@@ -17,10 +17,14 @@ from app.core import (
 
     logger,
 
+    UserRole,
+
     DatabaseError,
     PermissionDeniedError,
     MenuAlreadyExistsError,
     MenuNotFoundError,
+
+    RestaurantNotFoundError
 )
 
 
@@ -40,11 +44,25 @@ async def create_menu_item(
     if not restaurant:
 
         logger.warning("Restaurant not found while creating menu item")
-        raise MenuNotFoundError()
+        raise RestaurantNotFoundError()
     
-    if restaurant.owner_id != current_user.id:
+    if current_user.role not in (
+        UserRole.ADMIN.value,
+        UserRole.RESTAURANT_OWNER.value,
+    ):
+        logger.warning(
+            "User does not have permission to create menu items"
+        )
+        raise PermissionDeniedError()
 
-        logger.warning("User tried to create menu item for another restaurant")
+    if (
+        current_user.role != UserRole.ADMIN.value and 
+        restaurant.owner_id != current_user.id
+    ):
+
+        logger.warning(
+            "Restaurant owner tried to modify another owner's restaurant"
+        )
         raise PermissionDeniedError()
 
     
@@ -100,7 +118,7 @@ async def create_menu_item(
     
 async def get_menu_item_by_id (
         db: AsyncSession,
-        menu_id: int
+        menu_id: int,
     ):
 
     result = await db.execute(
@@ -117,7 +135,7 @@ async def get_menu_item_by_id (
     
     return menu
 
-async def get_menu_items_by_restaurant(
+async def get_menu_items_by_restaurant_id(
         db: AsyncSession,
         restaurant_id: int
     ):
@@ -148,12 +166,31 @@ async def update_menu_item(
 
     restaurant = restaurant_result.scalar_one_or_none()
 
-    if not restaurant or restaurant.owner_id != current_user.id:
+    if not restaurant:
+
+        logger.warning("Restaurant not found")
+        raise PermissionDeniedError()
+    
+
+    if current_user.role not in (
+
+        UserRole.ADMIN.value,
+        UserRole.RESTAURANT_OWNER.value,
+    ):
+        
+        logger.warning(
+            "User does not have permission to update menu items"
+        )
+        raise PermissionDeniedError()
+    
+    if (
+        current_user.role != UserRole.ADMIN.value and 
+        restaurant.owner_id != current_user.id
+    ):
 
         logger.warning("User tried to update menu item without permission")
         raise PermissionDeniedError()
     
-
 
     menu.restaurant_id = menu_data.restaurant_id
     menu.item_name = menu_data.item_name
@@ -187,7 +224,7 @@ async def delete_menu_item(
         
         db: AsyncSession,
         menu_id: int,
-        current_id: User
+        current_user: User
     ):
 
     menu = await get_menu_item_by_id(db, menu_id)
@@ -199,11 +236,33 @@ async def delete_menu_item(
 
     restaurant = restaurant_result.scalar_one_or_none()
 
-    if not restaurant or restaurant.owner_id != current_id.id:
+    if not restaurant:
 
-        logger.warning("User tried to delete menu item without permission")
+        logger.warning("Restaurant not found")
         raise PermissionDeniedError()
     
+    if current_user.role not in (
+        
+        UserRole.ADMIN.value,
+        UserRole.RESTAURANT_OWNER.value
+    ):
+        
+        logger.warning(
+            "User does not have permission to delete menu"
+        )
+        raise PermissionDeniedError()
+    
+    if (
+        current_user.role != UserRole.ADMIN.value and 
+        restaurant.owner_id != current_user.id
+    ):
+        
+        logger.warning(
+            "User does not have permission to delete menu"
+        )
+        raise PermissionDeniedError()
+    
+
     try:
 
         await db.delete(menu)
@@ -221,6 +280,8 @@ async def delete_menu_item(
         logger.exception("Unexpected error while deleting menu item")
         raise DatabaseError()
 
+
+
 async def change_menu_status(
         db: AsyncSession,
         menu_id: int,
@@ -237,10 +298,28 @@ async def change_menu_status(
 
     restaurant = restaurant_result.scalar_one_or_none()
 
-    if not restaurant or restaurant.owner_id != current_user.id:
+    if not restaurant:
 
-        logger.warning("User tried to change menu status without permission")
+        logger.warning("Restaurant not found")
         raise PermissionDeniedError()
+    
+    if current_user.role not in (
+
+        UserRole.ADMIN.value,
+        UserRole.RESTAURANT_OWNER.value
+    ):
+        
+        logger.warning("User does not have permission to chagne menu status")
+        raise PermissionDeniedError()
+    
+    if (
+
+        current_user.role != UserRole.ADMIN.value,
+        restaurant.owner_id != current_user.id
+    ):
+        logger.warning("User does not have permission to chagne menu status")
+        raise PermissionDeniedError()
+    
 
     menu.status = status
 

@@ -11,7 +11,6 @@ from app.api.dbcon import get_db
 from app.api.deps import (
     get_current_user, 
     get_admin,
-    get_admin_or_customer
 )
 
 from app.schemas import UserResponse
