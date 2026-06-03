@@ -18,7 +18,7 @@ from app.schemas import UserResponse
 router = APIRouter(tags=["Users"])
 
 @router.get(
-    "/id/{user_id}",
+    "/users/{user_id}",
     response_model=UserResponse,
     summary="Get a user by ID",
     description="Return the profile details for a specific user ID."
@@ -38,7 +38,7 @@ async def get_user_by_id(
 
 
 @router.get(
-    "/all_users",
+    "/users",
     response_model=list[UserResponse],
     summary="List all users",
     description="Return every user account. This endpoint is available to admins only."

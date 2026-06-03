@@ -19,7 +19,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/create_menu",
+    "/menus",
     response_model=MenuResponse,
     summary="Create a menu item",
     description=(
@@ -43,7 +43,7 @@ async def create_menu_item(
 
 
 @router.get(
-    "/id/{menu_id}",
+    "/menus/{menu_id}",
     response_model=MenuResponse,
     summary="Get a menu item by ID",
     description="Return the details for a specific menu item."
@@ -62,7 +62,7 @@ async def get_menu_item_by_id(
 
 
 @router.get(
-    "/id/{restaurant_id}",
+    "/restaurants/{restaurant_id}/menus",
     response_model=list[MenuResponse],
     summary="List menu items by restaurant",
     description="Return all menu items that belong to the given restaurant."
@@ -80,8 +80,8 @@ async def get_menu_items_by_restaurant_id(
     )
 
 
-@router.post(
-    "/update_menu/{menu_id}",
+@router.put(
+    "/menus/{menu_id}",
     response_model=MenuResponse,
     summary="Update a menu item",
     description=(
@@ -107,7 +107,7 @@ async def update_menu_item(
 
 
 @router.delete(
-    "/delete_menu/{menu_id}",
+    "/menus/{menu_id}",
     response_model=MenuResponse,
     summary="Delete a menu item",
     description=(
@@ -130,8 +130,8 @@ async def delete_menu_item(
     )
 
 
-@router.post(
-    "/change_status/{menu_id}",
+@router.patch(
+    "/menus/{menu_id}/status",
     response_model=MenuResponse,
     summary="Change a menu item's status",
     description=(

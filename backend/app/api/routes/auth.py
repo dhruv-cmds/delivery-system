@@ -17,7 +17,7 @@ router = APIRouter(tags=["Authentication"])
 
 
 @router.post(
-    "/signup",
+    "/auth/signup",
     response_model=UserResponse,
     summary="Create a user account",
     description=(
@@ -39,7 +39,7 @@ async def sign_up(
 
 
 @router.post(
-    "/login",
+    "/auth/login",
     response_model=TokenResponse,
     summary="Log in and get an access token",
     description=(
