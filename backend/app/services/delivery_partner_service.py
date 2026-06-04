@@ -49,7 +49,7 @@ async def create_delivery_partner(
         vehicle_type=data.vehicle_type,
     )
 
-    current_user.role = UserRole.DELIVERY_PARTNER.value
+    current_user.role = UserRole.DELIVERY_PARTNER
 
     try:
 
@@ -138,7 +138,7 @@ async def get_all_delivery_partners(
         current_user: User
     ):
 
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role != UserRole.ADMIN:
 
         logger.warning(
             "Delivery partner listing denied because the user is not an admin"
@@ -169,7 +169,7 @@ async def update_delivery_partner(
     )
 
     if (
-        current_user.role != UserRole.ADMIN.value
+        current_user.role != UserRole.ADMIN
         and partner.user_id != current_user.id
     ):
 
@@ -214,7 +214,7 @@ async def update_location(
     )
 
     if (
-        current_user.role != UserRole.ADMIN.value
+        current_user.role != UserRole.ADMIN
         and partner.user_id != current_user.id
     ):
 
@@ -258,7 +258,7 @@ async def delete_delivery_partner(
     )
 
     if (
-        current_user.role != UserRole.ADMIN.value
+        current_user.role != UserRole.ADMIN
         and partner.user_id != current_user.id
     ):
 

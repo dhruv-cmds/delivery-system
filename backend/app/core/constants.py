@@ -7,6 +7,28 @@ class UserRole(str, Enum):
     ADMIN = "ADMIN"
     RESTAURANT_OWNER = "RESTAURANT_OWNER"
 
+class DeliveryPartnerStatus(str, Enum):
+
+    AVAILABLE = "AVAILABLE"
+    ASSIGNED = "ASSIGNED"
+    OFFLINE = "OFFLINE"
+
+class UserStatus(str, Enum):
+
+    ACTIVE = "ACTIVE"
+    CLOSE = "CLOSE"
+
+class RestaurantStatus(str, Enum):
+
+    OPEN = "OPEN"
+    CLOSE = "CLOSE"
+
+
+class MenuStatus(str, Enum):
+
+    AVAILABLE = "AVAILABLE"
+    UNAVAILABLE = "UNAVAILABLE"
+
 class OrderStatus(str, Enum):
 
     PENDING = "PENDING"

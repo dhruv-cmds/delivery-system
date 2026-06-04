@@ -13,6 +13,12 @@ from .common import (
     Email
 )
 
+from app.core import (
+
+    UserRole,
+    UserStatus
+)
+
 
 # common/shared fields
 class UserBase(BaseModel):
@@ -33,8 +39,8 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
 
     id: int = Field(..., examples=[1])
-    role: str = Field(..., examples=["CUSTOMER"])
-    status: str = Field(..., examples=["ACTIVE"])
+    role: UserRole = Field(..., examples=[UserRole.CUSTOMER])
+    status: UserStatus = Field(..., examples=[UserStatus.ACTIVE])
 
     model_config = {
         "from_attributes": True

@@ -6,5 +6,6 @@ from .deps import (
     
     get_current_user,
     get_admin,
-    get_menu_manager
+    get_access_manager,
+    get_order_manager
 )

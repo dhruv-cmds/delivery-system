@@ -12,6 +12,9 @@ from decimal import Decimal
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
+from app.core import OrderStatus
+from sqlalchemy import Enum
+
 from datetime import datetime
 
 from app.db import Base
@@ -34,9 +37,9 @@ class OrderTracking(Base):
         index=True
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="PENDING",
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(OrderStatus),
+        default=OrderStatus.PENDING,
         nullable=False,
         index=True
     )

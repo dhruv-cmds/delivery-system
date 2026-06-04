@@ -36,9 +36,9 @@ async def create_restaurant(
     try:
         db.add(new_restaurant)
 
-        if current_user.role == UserRole.CUSTOMER.value:
+        if current_user.role == UserRole.CUSTOMER:
 
-            current_user.role = UserRole.RESTAURANT_OWNER.value
+            current_user.role = UserRole.RESTAURANT_OWNER
         
         await db.commit()
 

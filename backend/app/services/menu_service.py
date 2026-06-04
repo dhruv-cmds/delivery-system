@@ -19,6 +19,8 @@ from app.core import (
 
     UserRole,
 
+    MenuStatus,
+
     DatabaseError,
     PermissionDeniedError,
     MenuAlreadyExistsError,
@@ -49,8 +51,8 @@ async def create_menu_item(
         raise RestaurantNotFoundError()
     
     if current_user.role not in (
-        UserRole.ADMIN.value,
-        UserRole.RESTAURANT_OWNER.value,
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER,
     ):
         logger.warning(
             "Menu item creation denied because the user is not an admin or restaurant owner"
@@ -58,7 +60,7 @@ async def create_menu_item(
         raise PermissionDeniedError()
 
     if (
-        current_user.role != UserRole.ADMIN.value and 
+        current_user.role != UserRole.ADMIN and
         restaurant.owner_id != current_user.id
     ):
 
@@ -182,8 +184,8 @@ async def update_menu_item(
 
     if current_user.role not in (
 
-        UserRole.ADMIN.value,
-        UserRole.RESTAURANT_OWNER.value,
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER,
     ):
         
         logger.warning(
@@ -192,7 +194,7 @@ async def update_menu_item(
         raise PermissionDeniedError()
     
     if (
-        current_user.role != UserRole.ADMIN.value and 
+        current_user.role != UserRole.ADMIN and
         restaurant.owner_id != current_user.id
     ):
 
@@ -255,8 +257,8 @@ async def delete_menu_item(
     
     if current_user.role not in (
         
-        UserRole.ADMIN.value,
-        UserRole.RESTAURANT_OWNER.value
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER
     ):
         
         logger.warning(
@@ -265,7 +267,7 @@ async def delete_menu_item(
         raise PermissionDeniedError()
     
     if (
-        current_user.role != UserRole.ADMIN.value and 
+        current_user.role != UserRole.ADMIN and
         restaurant.owner_id != current_user.id
     ):
         
@@ -297,7 +299,7 @@ async def delete_menu_item(
 async def change_menu_status(
         db: AsyncSession,
         menu_id: int,
-        status: str,
+        status: MenuStatus,
         current_user: User
     ):
 
@@ -319,8 +321,8 @@ async def change_menu_status(
     
     if current_user.role not in (
 
-        UserRole.ADMIN.value,
-        UserRole.RESTAURANT_OWNER.value
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER
     ):
         
         logger.warning(
@@ -329,8 +331,8 @@ async def change_menu_status(
         raise PermissionDeniedError()
     
     if (
-
-        current_user.role != UserRole.ADMIN.value,
+        current_user.role != UserRole.ADMIN
+        and
         restaurant.owner_id != current_user.id
     ):
         logger.warning(

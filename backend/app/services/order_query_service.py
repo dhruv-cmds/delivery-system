@@ -6,6 +6,7 @@ from app.db.models import DeliveryPartner, Menu, Order, User
 
 from app.core import (
 
+    MenuStatus,
     UserRole,
     
     logger,
@@ -17,17 +18,17 @@ from app.core import (
 
 def apply_order_visibility(statement, current_user: User):
 
-    if current_user.role == UserRole.ADMIN.value:
+    if current_user.role == UserRole.ADMIN:
 
         return statement
 
-    if current_user.role == UserRole.CUSTOMER.value:
+    if current_user.role == UserRole.CUSTOMER:
 
         return statement.where(
             Order.customer_id == current_user.id
         )
 
-    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+    if current_user.role == UserRole.DELIVERY_PARTNER:
 
         delivery_partner_ids = (
             select(DeliveryPartner.id)
@@ -60,7 +61,7 @@ async def get_menu_item_for_order(
         )
         raise OrderItemNotFoundError("Menu item not found")
 
-    if menu_item.status != "AVAILABLE":
+    if menu_item.status != MenuStatus.AVAILABLE:
 
         logger.warning(
             "Order processing failed because the menu item is unavailable"

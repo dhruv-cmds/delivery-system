@@ -10,6 +10,8 @@ from .common import (
     PhoneStr
 )
 
+from app.core import RestaurantStatus
+
 # common/shared fields
 class RestaurantBase(BaseModel):
 
@@ -43,7 +45,7 @@ class RestaurantResponse(RestaurantBase):
 
     id: int = Field(..., examples=[35])
     owner_id: int | None = Field(None, examples=[1])
-    status: str = Field(..., examples=["OPEN"]) 
+    status: RestaurantStatus = Field(..., examples=[RestaurantStatus.OPEN])
 
     model_config = {
 

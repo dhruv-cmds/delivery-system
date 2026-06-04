@@ -9,7 +9,11 @@ from sqlalchemy import (
     ForeignKey
 )
 
+from app.core import PaymentStatus
+
 from decimal import Decimal
+
+from sqlalchemy import Enum
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
@@ -49,9 +53,9 @@ class Payment(Base):
         index=True
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="PENDING",
+    status: Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus),
+        default=PaymentStatus.PENDING,
         nullable=False,
         index=True
     )

@@ -22,11 +22,9 @@ from app.core import (
     PaymentStatus,
 
     DatabaseError,
-    InvalidOperationError,
 
     PaymentNotFoundError,
     PaymentAlreadyCompletedError,
-    InsufficientBalanceError,
     PermissionDeniedError,
 )
 
@@ -45,7 +43,7 @@ async def make_payment(
         current_user: User,
     ):
 
-    if current_user.role != UserRole.CUSTOMER.value:
+    if current_user.role != UserRole.CUSTOMER:
 
         logger.warning(
             "Payment creation denied because the user is not a customer"
@@ -65,20 +63,20 @@ async def make_payment(
 
     existing_payment = result.scalar_one_or_none()
 
-    if existing_payment and existing_payment.status == PaymentStatus.SUCCESS.value:
+    if existing_payment and existing_payment.status == PaymentStatus.SUCCESS:
 
         logger.warning(
             "Payment creation skipped because the order is already paid"
         )
         raise PaymentAlreadyCompletedError()
 
-    status = PaymentStatus.PENDING.value
+    status = PaymentStatus.PENDING
     paid_at = None
     transaction_reference = None
 
     if payment.payment_method in ONLINE_PAYMENT_METHODS:
 
-        status = PaymentStatus.SUCCESS.value
+        status = PaymentStatus.SUCCESS
         paid_at = datetime.utcnow()
         transaction_reference = f"txn_{uuid4().hex}"
 
@@ -190,25 +188,16 @@ async def get_payment_by_order_id(
 async def update_payment_status(
         db: AsyncSession,
         payment_id: int,
-        status: str,
+        status: PaymentStatus,
         current_user: User,
     ):
 
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role != UserRole.ADMIN:
 
         logger.warning(
             "Payment status update denied because the user is not an admin"
         )
         raise PermissionDeniedError()
-
-    valid_statuses = {payment_status.value for payment_status in PaymentStatus}
-
-    if status not in valid_statuses:
-
-        logger.warning(
-            "Payment status update failed because the requested status is invalid"
-        )
-        raise InvalidOperationError(f"Invalid payment status '{status}'")
 
     result = await db.execute(
         select(Payment)
@@ -227,8 +216,8 @@ async def update_payment_status(
         raise PaymentNotFoundError()
 
     if (
-        payment.status == PaymentStatus.SUCCESS.value
-        and status == PaymentStatus.SUCCESS.value
+        payment.status == PaymentStatus.SUCCESS
+        and status == PaymentStatus.SUCCESS
     ):
 
         logger.warning(
@@ -239,7 +228,7 @@ async def update_payment_status(
     payment.status = status
     payment.order.payment_status = status
 
-    if status == PaymentStatus.SUCCESS.value:
+    if status == PaymentStatus.SUCCESS:
 
         if not payment.paid_at:
 

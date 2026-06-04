@@ -9,6 +9,9 @@ from sqlalchemy import (
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
+from app.core import UserStatus, UserRole
+from sqlalchemy import Enum
+
 from datetime import datetime
 
 from app.db import Base
@@ -51,9 +54,9 @@ class User(Base):
         nullable=False
     )
 
-    role: Mapped[str] = mapped_column(
-        String(50),
-        default="CUSTOMER",
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole),
+        default=UserRole.CUSTOMER,
         nullable=False,
         index=True
     )
@@ -65,9 +68,9 @@ class User(Base):
         index=True
     )
 
-    status: Mapped[str] = mapped_column(
-        String(50),
-        default="ACTIVE",
+    status: Mapped[UserStatus] = mapped_column(
+        Enum(UserStatus),
+        default=UserStatus.ACTIVE,
         nullable=False,
         index=True
     )

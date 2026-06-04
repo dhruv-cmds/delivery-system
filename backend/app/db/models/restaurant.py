@@ -10,6 +10,8 @@ from sqlalchemy import (
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
+from app.core import RestaurantStatus
+from sqlalchemy import Enum
 from datetime import datetime
 
 from app.db import Base
@@ -44,9 +46,9 @@ class Restaurant(Base):
         nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String(50),
-        default="OPEN",
+    status: Mapped[RestaurantStatus] = mapped_column(
+        Enum(RestaurantStatus),
+        default=RestaurantStatus.OPEN,
         nullable=False,
         index=True
     )

@@ -11,6 +11,9 @@ from sqlalchemy import (
 
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
+from app.core import MenuStatus
+from sqlalchemy import Enum
+
 from datetime import datetime
 
 from decimal import Decimal
@@ -52,9 +55,9 @@ class Menu(Base):
         nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="AVAILABLE",
+    status: Mapped[MenuStatus] = mapped_column(
+        Enum(MenuStatus),
+        default=MenuStatus.AVAILABLE,
         nullable=False,
         index=True
     )

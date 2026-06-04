@@ -11,6 +11,8 @@ from sqlalchemy import (
 from decimal import Decimal
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
+from app.core import OrderStatus, PaymentStatus
+from sqlalchemy import Enum
 from datetime import datetime
 
 from app.db import Base
@@ -49,9 +51,9 @@ class Order(Base):
         index=True
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="PENDING",
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(OrderStatus),
+        default=OrderStatus.PENDING,
         nullable=False,
         index=True
     )
@@ -66,9 +68,9 @@ class Order(Base):
         nullable=False
     )
 
-    payment_status: Mapped[str] = mapped_column(
-        String(20),
-        default="PENDING",
+    payment_status: Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus),
+        default=PaymentStatus.PENDING,
         nullable=False,
         index=True
     )

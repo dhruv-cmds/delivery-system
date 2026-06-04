@@ -7,6 +7,7 @@ from pydantic import (
 
 from decimal import Decimal
 
+from app.core import DeliveryPartnerStatus
 
 class DeliveryPartnerBase(BaseModel):
 
@@ -20,7 +21,7 @@ class DeliveryPartnerResponse(DeliveryPartnerBase):
 
     id: int = Field(..., examples=[603])
     user_id: int = Field(None, examples=[79])
-    status: str = Field(..., examples=["PENDING"]) 
+    status: DeliveryPartnerStatus = Field(..., examples=[DeliveryPartnerStatus.AVAILABLE])
 
     rating: Decimal | None = Field(None, examples=[5.00, 3.9])
     latitude: Decimal | None = Field(None, examples=[22.3072])

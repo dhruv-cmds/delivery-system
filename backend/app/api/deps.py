@@ -46,7 +46,7 @@ async def get_current_user(
 
         if subject is None:
 
-            raise InvalidTokenError("Invalid token payload")
+            raise InvalidTokenError()
 
         user_id = int(subject)
         
@@ -73,18 +73,31 @@ async def get_current_user(
 
 async def get_admin(current_user = Depends(get_current_user)):
 
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role != UserRole.ADMIN:
 
         raise AdminAccessRequiredError()
+
+    return current_user
+
+
+async def get_access_manager(current_user = Depends(get_current_user)):
+
+    if current_user.role not in (
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER
+    ):
+
+        raise PermissionDeniedError()
     
     return current_user
 
 
-async def get_menu_manager(current_user = Depends(get_current_user)):
+async def get_order_manager(current_user = Depends(get_current_user)):
 
     if current_user.role not in (
-        UserRole.ADMIN.value,
-        UserRole.RESTAURANT_OWNER.value
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER,
+        UserRole.DELIVERY_PARTNER
     ):
 
         raise PermissionDeniedError()

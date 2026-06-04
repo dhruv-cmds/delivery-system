@@ -10,6 +10,7 @@ from datetime import datetime
 
 from typing import Literal
 
+from app.core import PaymentStatus
 
 class PaymentBase(BaseModel):
 
@@ -39,7 +40,7 @@ class PaymentResponse(PaymentBase):
     id: int = Field(..., examples=[1])
     order_id: int = Field(..., examples=[454])
     amount: Decimal = Field(..., examples=[799.00])
-    status: str = Field(..., examples=["PENDING"])
+    status: PaymentStatus = Field(..., examples=[PaymentStatus.PENDING])
 
     paid_at: datetime | None = Field(
         None,

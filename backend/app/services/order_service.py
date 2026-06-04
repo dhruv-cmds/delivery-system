@@ -7,9 +7,11 @@ from app.db.models import Order, OrderItem, User
 
 from app.schemas import OrderCreate, OrderItemCreate
 
+
 from app.core import (
 
     UserRole,
+    OrderStatus,
 
     MAX_ORDER_TIMES,
     MAX_TRANSFER_LIMIT,
@@ -35,8 +37,8 @@ from app.services.order_query_service import (
 
 
 FINAL_ORDER_STATUSES = {
-    OrderStatus.DELIVERED.value,
-    OrderStatus.CANCELLED.value,
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELLED,
 }
 
 
@@ -46,7 +48,7 @@ async def create_order(
         current_user: User,
     ):
 
-    if current_user.role != UserRole.CUSTOMER.value:
+    if current_user.role != UserRole.CUSTOMER:
 
         logger.warning(
             "Order creation denied because the user is not a customer"
@@ -60,7 +62,7 @@ async def create_order(
         )
         raise EmptyOrderError("Order item quantity must be greater than zero")
     
-    if order_data.quantity > 20:
+    if order_data.quantity > MAX_ORDER_TIMES:
 
         logger.warning(
             "Order creation failed because the quantity is above the allowed limit"
@@ -76,7 +78,7 @@ async def create_order(
 
     item_total = menu_item.price * Decimal(order_data.quantity)
 
-    if item_total > 50000:
+    if item_total > MAX_TRANSFER_LIMIT:
 
         logger.warning(
             "Order creation failed because the total price is above the transfer limit"
@@ -132,7 +134,7 @@ async def update_order_by_id(
         current_user: User,
     ):
 
-    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+    if current_user.role == UserRole.DELIVERY_PARTNER:
 
         logger.warning(
             "Order item update denied because delivery partners cannot update order items"
@@ -145,7 +147,7 @@ async def update_order_by_id(
         current_user,
     )
 
-    if order.status == OrderStatus.DELIVERED.value:
+    if order.status == OrderStatus.DELIVERED:
 
         logger.warning(
             "Order item update denied because the order is already delivered"
@@ -215,11 +217,11 @@ async def update_order_by_id(
 async def update_order_status(
         db: AsyncSession,
         order_id: int,
-        status: str,
+        status: OrderStatus,
         current_user: User,
     ):
 
-    if current_user.role == UserRole.CUSTOMER.value:
+    if current_user.role == UserRole.CUSTOMER:
 
         logger.warning(
             "Order status update denied because customers cannot update order status"
@@ -232,28 +234,19 @@ async def update_order_status(
         current_user,
     )
 
-    if order.status == OrderStatus.DELIVERED.value:
+    if order.status == OrderStatus.DELIVERED:
 
         logger.warning(
             "Order status update denied because the order is already delivered"
         )
         raise OrderAlreadyDeliveredError()
 
-    if order.status == OrderStatus.CANCELLED.value:
+    if order.status == OrderStatus.CANCELLED:
 
         logger.warning(
             "Order status update denied because the order is already cancelled"
         )
         raise InvalidOrderStateError(order.status)
-
-    valid_statuses = {order_status.value for order_status in OrderStatus}
-
-    if status not in valid_statuses:
-
-        logger.warning(
-            "Order status update failed because the requested status is invalid"
-        )
-        raise InvalidOrderStateError(status)
 
     order.status = status
 
@@ -279,7 +272,7 @@ async def delete_order_by_id(
         current_user: User
     ):
 
-    if current_user.role == UserRole.DELIVERY_PARTNER.value:
+    if current_user.role == UserRole.DELIVERY_PARTNER:
 
         logger.warning(
             "Order deletion denied because delivery partners cannot delete orders"
@@ -292,7 +285,7 @@ async def delete_order_by_id(
         current_user,
     )
 
-    if order.status == OrderStatus.DELIVERED.value:
+    if order.status == OrderStatus.DELIVERED:
 
         logger.warning(
             "Order deletion denied because the order is already delivered"

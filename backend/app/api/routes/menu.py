@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import limiter 
+from app.core import MenuStatus, limiter
 
 from app.schemas import MenuResponse, MenuCreate
 from app.services import menu_service
@@ -9,13 +9,15 @@ from app.services import menu_service
 from app.api import get_db
 from app.api import (
     get_current_user,
-    get_menu_manager,
+    get_access_manager,
 )
 
 router = APIRouter(
         tags=["Menu"],
         dependencies=[Depends(get_current_user)]
     )
+
+public_router = APIRouter(tags=["Menu_Public"])
 
 
 @router.post(
@@ -32,7 +34,7 @@ async def create_menu_item(
     request: Request,
     menu: MenuCreate,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_menu_manager)
+    current_user = Depends(get_access_manager)
 ):
     return await menu_service.create_menu_item(
         db,
@@ -42,7 +44,7 @@ async def create_menu_item(
 
 
 
-@router.get(
+@public_router.get(
     "/menus/{menu_id}",
     response_model=MenuResponse,
     summary="Get a menu item by ID",
@@ -61,7 +63,7 @@ async def get_menu_item_by_id(
     )
 
 
-@router.get(
+@public_router.get(
     "/restaurants/{restaurant_id}/menus",
     response_model=list[MenuResponse],
     summary="List menu items by restaurant",
@@ -95,7 +97,7 @@ async def update_menu_item(
         menu_data: MenuCreate,
         menu_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_menu_manager)
+        current_user = Depends(get_access_manager)
     ):
 
     return await menu_service.update_menu_item(
@@ -120,7 +122,7 @@ async def delete_menu_item(
         request: Request,
         menu_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_menu_manager)
+        current_user = Depends(get_access_manager)
     ):
 
     return await menu_service.delete_menu_item(
@@ -143,9 +145,9 @@ async def delete_menu_item(
 async def change_menu_status(
         request: Request,
         menu_id: int,
-        status: str,
+        status: MenuStatus,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_menu_manager)
+        current_user = Depends(get_access_manager)
     ):
 
     return await menu_service.change_menu_status(

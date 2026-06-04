@@ -11,6 +11,9 @@ from sqlalchemy import (
 
 from decimal import Decimal
 
+from app.core import DeliveryPartnerStatus
+from sqlalchemy import Enum
+
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
@@ -42,9 +45,9 @@ class DeliveryPartner(Base):
         nullable=False
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="PENDING",
+    status: Mapped[DeliveryPartnerStatus] = mapped_column(
+        Enum(DeliveryPartnerStatus),
+        default=DeliveryPartnerStatus.AVAILABLE,
         nullable=False,
         index=True
     )

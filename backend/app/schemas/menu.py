@@ -6,6 +6,7 @@ from pydantic import (
 
 from decimal import Decimal
 
+from app.core import MenuStatus
 # common/shared fields
 class MenuBase(BaseModel):
 
@@ -25,7 +26,7 @@ class MenuCreate(MenuBase):
 class MenuResponse(MenuBase):
 
     id: int = Field(..., examples=[24])
-    status: str = Field(..., examples=["AVAILABLE"])
+    status: MenuStatus = Field(..., examples=[MenuStatus.AVAILABLE])
 
     model_config = {
 
