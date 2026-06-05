@@ -223,13 +223,15 @@ async def delete_restaurant_by_id(
         )
         raise PermissionDeniedError()
 
+    deleted_restaurant = restaurant
+
     try:
 
         await db.delete(restaurant)
 
         await db.commit()
 
-        return True
+        return deleted_restaurant
 
     except Exception:
 

@@ -268,13 +268,15 @@ async def delete_delivery_partner(
 
         raise PermissionDeniedError()
 
+    deleted_partner = partner
+
     try:
 
         await db.delete(partner)
 
         await db.commit()
 
-        return True
+        return deleted_partner
 
     except Exception:
 

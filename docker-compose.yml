@@ -19,6 +19,9 @@ services:
     env_file:
       - ./backend/.env
 
+    environment:
+      ENV: docker
+
     restart: always
 
   delivery-db:
@@ -32,8 +35,16 @@ services:
     env_file:
       - ./backend/.env
 
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-delivery}
+      MYSQL_USER: ${MYSQL_USER:-delivery_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-delivery_password}
+
     ports:
       - "3010:3306"
 
     volumes:
-      - ./databases/deliver:/var/lib/mysql
+      - delivery-db-data:/var/lib/mysql
+
+volumes:
+  delivery-db-data:

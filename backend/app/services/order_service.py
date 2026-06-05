@@ -326,13 +326,15 @@ async def delete_order_by_id(
         )
         raise InvalidOrderStateError(order.status)
 
+    deleted_order = order
+
     try:
 
         await db.delete(order)
 
         await db.commit()
 
-        return True
+        return deleted_order
     
     except IntegrityError:
 

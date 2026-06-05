@@ -7,12 +7,15 @@ from sqlalchemy import text
 from app.db import Base,engine
 
 from app.api.routes import (
-    auth, 
-    health, 
-    menu, 
+    auth,
+    delivery_partner,
+    health,
+    menu,
+    notifications,
     orders,
+    payment,
     restaurants,
-    users
+    users,
 )
 
 from app.db.models import (
