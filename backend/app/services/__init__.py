@@ -69,6 +69,7 @@ from .restaurant_service import (
     create_restaurant,
     get_restaurant_by_id,
     update_restaurant,
+    update_restaurant_status,
     delete_restaurant_by_id
 )
 
