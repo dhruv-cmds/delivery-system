@@ -5,7 +5,8 @@ from .dbcon import (
 from .deps import (
     
     get_current_user,
-    get_admin,
+    require_admin_access,
     get_access_manager,
+    require_restaurant_access,
     get_order_manager
 )

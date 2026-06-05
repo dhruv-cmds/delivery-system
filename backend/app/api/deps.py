@@ -71,7 +71,7 @@ async def get_current_user(
     
     return user
 
-async def get_admin(current_user = Depends(get_current_user)):
+async def require_admin_access(current_user = Depends(get_current_user)):
 
     if current_user.role != UserRole.ADMIN:
 
@@ -85,6 +85,19 @@ async def get_access_manager(current_user = Depends(get_current_user)):
     if current_user.role not in (
         UserRole.ADMIN,
         UserRole.RESTAURANT_OWNER
+    ):
+
+        raise PermissionDeniedError()
+    
+    return current_user
+
+
+async def require_restaurant_access(current_user = Depends(get_current_user)):
+
+    if current_user.role not in (
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER,
+        UserRole.CUSTOMER
     ):
 
         raise PermissionDeniedError()
