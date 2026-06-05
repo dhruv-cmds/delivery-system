@@ -176,6 +176,20 @@ class RestaurantAlreadyExistsError(DeliverySystemError):
         )
 
 
+class RestaurantStatusAlreadySetError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Restaurant already has the requested status",
+    ):
+
+        super().__init__(
+            error_code="RESTAURANT_STATUS_ALREADY_SET",
+            message=message,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+        
 class MenuNotFoundError(DeliverySystemError):
 
     def __init__(

@@ -37,6 +37,7 @@ from .exceptions import (
 
     RestaurantNotFoundError,
     RestaurantAlreadyExistsError,
+    RestaurantStatusAlreadySetError,
 
     MenuNotFoundError,
     MenuAlreadyExistsError,
