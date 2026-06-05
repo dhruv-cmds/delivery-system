@@ -10,11 +10,13 @@ from app.core import (
     logger,
 
     UserRole,
+    RestaurantStatus,
 
     DatabaseError,
     
     RestaurantNotFoundError,
     RestaurantAlreadyExistsError,
+    RestaurantStatusAlreadySetError,
     PermissionDeniedError,
 )
 
@@ -24,7 +26,16 @@ async def create_restaurant(
         restaurant: RestaurantCreate,
         current_user: User,
     ):
+    
+    if current_user.role not in (
 
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER,
+        UserRole.CUSTOMER
+    ):
+        logger.warning("only admin, resturant onwer and customer can create a restaurant")
+        raise PermissionDeniedError()
+    
 
     new_restaurant = Restaurant(
         name=restaurant.name,
@@ -39,7 +50,7 @@ async def create_restaurant(
         if current_user.role == UserRole.CUSTOMER:
 
             current_user.role = UserRole.RESTAURANT_OWNER
-        
+          
         await db.commit()
 
         await db.refresh(new_restaurant)
@@ -75,6 +86,7 @@ async def get_restaurant_by_id(
     restaurant = result.scalar_one_or_none()
 
     if not restaurant:
+
         logger.warning(
             "Restaurant lookup failed because the restaurant was not found"
         )
@@ -127,6 +139,70 @@ async def update_restaurant(
         logger.exception("Unexpected error while updating restaurant")
         raise DatabaseError()
 
+async def update_restaurant_status(
+        db: AsyncSession,
+        restaurant_id: int,
+        status: RestaurantStatus,
+        current_user: User
+    ):
+
+    if current_user.role not in (
+
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER
+    ):
+        
+        logger.warning(
+            "Non restaurant owner cant chagne the restaurant status"
+        )
+        raise PermissionDeniedError()
+    
+    
+    restaurant = await get_restaurant_by_id(
+        db,
+        restaurant_id
+    )
+
+    if (
+        current_user.role != UserRole.ADMIN and
+        restaurant.owner_id != current_user.id
+    ):
+        
+        logger.warning(
+            "Another restaurant owner can't chagne the restaurant status"
+        )
+        raise PermissionDeniedError()
+    
+    
+    if restaurant.status == status:
+
+        logger.warning(
+            "Restaurant already has the requested status"
+        )
+
+        raise RestaurantStatusAlreadySetError()
+    
+    
+    restaurant.status = status
+
+    try:
+
+        await db.commit()
+
+        await db.refresh(restaurant)
+
+        return restaurant
+
+    except Exception:
+
+        await db.rollback()
+
+        logger.exception(
+            "Unexpected error while updating restaurant status"
+        )
+        raise DatabaseError()
+
+    
 
 async def delete_restaurant_by_id(
         db: AsyncSession,
