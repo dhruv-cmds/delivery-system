@@ -121,7 +121,8 @@ async def delete_order_by_id(
 async def get_menu_item_for_order(
         request: Request,
         menu_item_id: int,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        current_user = Depends(get_access_manager)
     ):
 
     return await order_query_service.get_menu_item_for_order(

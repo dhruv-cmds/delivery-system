@@ -111,8 +111,6 @@ async def create_order(
 
         await db.flush()
 
-        order_id = new_order.id
-
         await db.commit()
 
         result = await db.execute(
@@ -149,15 +147,6 @@ async def update_order_by_id(
         order_data: OrderItemCreate,
         current_user: User,
     ):
-
-    if current_user.role not in (
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER
-    ):
-        logger.warning(
-            "Order item update denied because the user is not an admin or restaurant owner"
-        )
-        raise PermissionDeniedError()
     
     order = await get_order_by_id(
         db,
@@ -248,13 +237,6 @@ async def update_order_status(
         current_user: User,
     ):
 
-    if current_user.role == UserRole.CUSTOMER:
-
-        logger.warning(
-            "Order status update denied because customers cannot update order status"
-        )
-        raise PermissionDeniedError()
-
     order = await get_order_by_id(
         db,
         order_id,
@@ -298,13 +280,6 @@ async def delete_order_by_id(
         order_id: int,
         current_user: User
     ):
-
-    if current_user.role == UserRole.DELIVERY_PARTNER:
-
-        logger.warning(
-            "Order deletion denied because delivery partners cannot delete orders"
-        )
-        raise PermissionDeniedError()
 
     order = await get_order_by_id(
         db,

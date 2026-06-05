@@ -23,11 +23,14 @@ async def sign_up(db, user: UserCreate):
 async def login(
         db, 
         email: str, 
-        password: str
+        password: str,
     ):
 
     
-    user = await get_user_by_email(db, email)
+    user = await get_user_by_email(
+        db, 
+        email,
+    )
 
     if not user:
         

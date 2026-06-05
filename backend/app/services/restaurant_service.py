@@ -27,16 +27,6 @@ async def create_restaurant(
         current_user: User,
     ):
     
-    if current_user.role not in (
-
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER,
-        UserRole.CUSTOMER
-    ):
-        logger.warning("only admin, resturant onwer and customer can create a restaurant")
-        raise PermissionDeniedError()
-    
-
     new_restaurant = Restaurant(
         name=restaurant.name,
         phone=restaurant.phone,
@@ -107,8 +97,11 @@ async def update_restaurant(
         restaurant_id,
     )
 
-    if restaurant.owner_id != current_user.id:
-
+    if (
+        current_user.role != UserRole.ADMIN and
+        restaurant.owner_id != current_user.id
+    ):
+        
         logger.warning(
             "Restaurant update denied because the user does not own the restaurant"
         )
@@ -145,18 +138,6 @@ async def update_restaurant_status(
         status: RestaurantStatus,
         current_user: User
     ):
-
-    if current_user.role not in (
-
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER
-    ):
-        
-        logger.warning(
-            "Non restaurant owner cant chagne the restaurant status"
-        )
-        raise PermissionDeniedError()
-    
     
     restaurant = await get_restaurant_by_id(
         db,
@@ -216,8 +197,11 @@ async def delete_restaurant_by_id(
         restaurant_id,
     )
 
-    if restaurant.owner_id != current_user.id:
-
+    if (
+        current_user.role != UserRole.ADMIN and
+        restaurant.owner_id != current_user.id
+    ):
+        
         logger.warning(
             "Restaurant deletion denied because the user does not own the restaurant"
         )

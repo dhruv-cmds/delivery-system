@@ -30,7 +30,7 @@ async def create_user(
         .where(
             (User.username == user.username.lower()) |
             (User.phone == user.phone) |
-            (User.email == user.email)
+            (User.email == user.email.lower())
         )
     )
 
@@ -46,7 +46,7 @@ async def create_user(
         username=user.username.lower(),
         name=user.name,
         phone=user.phone,
-        email=user.email,
+        email=user.email.lower(),
         hashed_password=hash_password(user.password)
     )
 
@@ -77,7 +77,7 @@ async def create_user(
 
 async def get_user_by_id (
         db:AsyncSession,
-        user_id:int
+        user_id:int,
     ):
 
     result = await db.execute(
@@ -108,15 +108,22 @@ async def get_all_users (
 
 async def get_user_by_email(
         db:AsyncSession,
-        user_email: str
-    ):
+        user_email: str,
+    ):  
 
     result = await db.execute(
         select(User)
         .where(User.email == user_email)
     )
 
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+
+    if not user:
+
+        logger.warning("User lookup failed because the user was not found")
+        raise UserNotFoundError()
+    
+    return user
 
 async def get_user_by_username(
         db: AsyncSession,

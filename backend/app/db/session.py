@@ -43,7 +43,7 @@ DATABASE_URL = (
 engine = create_async_engine (
 
     DATABASE_URL,
-    pool_pre_ping=False,
+    pool_pre_ping=True,
     pool_size=20,
     max_overflow=30,
     pool_timeout=30,

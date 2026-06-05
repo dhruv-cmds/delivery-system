@@ -8,8 +8,7 @@ from app.core import (
 from app.services import user_service
 from app.api.dbcon import get_db
 
-from app.api.deps import (
-    get_current_user, 
+from app.api.deps import (  
     require_admin_access,
 )
 
@@ -28,12 +27,13 @@ async def get_user_by_id(
         request: Request,
         user_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_current_user)
+        current_user = Depends(require_admin_access)
     ):
 
     return await user_service.get_user_by_id(
         db,
-        user_id
+        user_id,
+        current_user
     )
 
 
@@ -64,12 +64,13 @@ async def get_user_by_email(
         request: Request,
         user_email: str,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_current_user)
+        current_user = Depends(require_admin_access)
     ):
 
     return await user_service.get_user_by_email(
         db,
-        user_email
+        user_email,
+        current_user
     )
 
 
@@ -82,9 +83,10 @@ async def get_user_by_email(
 @limiter.limit("3/second")
 async def get_user_by_username(
         request: Request,
+        
         username: str,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_current_user)
+        current_user = Depends(require_admin_access)
     ):
 
     return await user_service.get_user_by_username(

@@ -49,15 +49,6 @@ async def create_menu_item(
             "Menu item creation failed because the restaurant was not found"
         )
         raise RestaurantNotFoundError()
-    
-    if current_user.role not in (
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER,
-    ):
-        logger.warning(
-            "Menu item creation denied because the user is not an admin or restaurant owner"
-        )
-        raise PermissionDeniedError()
 
     if (
         current_user.role != UserRole.ADMIN and
@@ -179,19 +170,7 @@ async def update_menu_item(
         logger.warning(
             "Menu item update failed because the restaurant was not found"
         )
-        raise PermissionDeniedError()
-    
-
-    if current_user.role not in (
-
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER,
-    ):
-        
-        logger.warning(
-            "Menu item update denied because the user is not an admin or restaurant owner"
-        )
-        raise PermissionDeniedError()
+        raise RestaurantNotFoundError()
     
     if (
         current_user.role != UserRole.ADMIN and
@@ -253,18 +232,7 @@ async def delete_menu_item(
         logger.warning(
             "Menu item deletion failed because the restaurant was not found"
         )
-        raise PermissionDeniedError()
-    
-    if current_user.role not in (
-        
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER
-    ):
-        
-        logger.warning(
-            "Menu item deletion denied because the user is not an admin or restaurant owner"
-        )
-        raise PermissionDeniedError()
+        raise RestaurantNotFoundError()
     
     if (
         current_user.role != UserRole.ADMIN and
@@ -315,18 +283,7 @@ async def change_menu_status(
         logger.warning(
             "Menu status update failed because the restaurant was not found"
         )
-        raise PermissionDeniedError()
-    
-    if current_user.role not in (
-
-        UserRole.ADMIN,
-        UserRole.RESTAURANT_OWNER
-    ):
-        
-        logger.warning(
-            "Menu status update denied because the user is not an admin or restaurant owner"
-        )
-        raise PermissionDeniedError()
+        raise RestaurantNotFoundError()
     
     if (
         current_user.role != UserRole.ADMIN
