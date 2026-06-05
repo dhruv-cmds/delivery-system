@@ -134,18 +134,29 @@ async def update_order_by_id(
         current_user: User,
     ):
 
-    if current_user.role == UserRole.DELIVERY_PARTNER:
-
+    if current_user.role not in (
+        UserRole.ADMIN,
+        UserRole.RESTAURANT_OWNER
+    ):
         logger.warning(
-            "Order item update denied because delivery partners cannot update order items"
+            "Order item update denied because the user is not an admin or restaurant owner"
         )
         raise PermissionDeniedError()
-
+    
     order = await get_order_by_id(
         db,
         order_id,
         current_user,
     )
+
+    if current_user.role == UserRole.RESTAURANT_OWNER:
+
+        if order.restaurant.owner_id != current_user.id:
+        
+            logger.warning(
+                "Order item update denied because the order belongs to another restaurant owner"
+            )
+            raise PermissionDeniedError()
 
     if order.status == OrderStatus.DELIVERED:
 
