@@ -283,9 +283,7 @@ async def delete_menu_item(
 
         await db.commit()
 
-        return{
-            "message": "Menu item deleted successfully"
-        }
+        return menu
     
     except Exception:
 

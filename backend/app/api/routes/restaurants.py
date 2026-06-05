@@ -14,7 +14,7 @@ from app.api import (
 
 from app.services import restaurant_service
 
-from app.schemas import RestaurantCreate, RestaurantResponse
+from app.schemas import RestaurantCreate, RestaurantResponse 
 
 
 router = APIRouter(
@@ -24,6 +24,7 @@ router = APIRouter(
 
 
 @router.post(
+    "/",
     response_model=RestaurantResponse,
     summary="Create a restaurant owner",
     description="Restaurant owner create only admin and current user can create resaurant owner"

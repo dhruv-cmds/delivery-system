@@ -10,7 +10,7 @@ from app.api.dbcon import get_db
 
 from app.api.deps import (
     get_current_user, 
-    get_admin,
+    require_admin_access,
 )
 
 from app.schemas import UserResponse
@@ -47,7 +47,7 @@ async def get_user_by_id(
 async def get_all_users(
         request: Request,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(get_admin)
+        current_user = Depends(require_admin_access)
     ):
 
     return await user_service.get_all_users(db)

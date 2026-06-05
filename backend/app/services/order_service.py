@@ -7,6 +7,8 @@ from app.db.models import Order, OrderItem, User
 
 from app.schemas import OrderCreate, OrderItemCreate
 
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core import (
 
@@ -104,9 +106,23 @@ async def create_order(
 
     try:
 
+
         db.add(new_order)
 
+        await db.flush()
+
+        order_id = new_order.id
+
         await db.commit()
+
+        result = await db.execute(
+            select(Order)
+            .options(selectinload(Order.order_items))
+            .where(Order.id == new_order.id)
+        )
+
+        new_order = result.scalar_one()
+
 
         await db.refresh(new_order)
 

@@ -105,7 +105,8 @@ class Order(Base):
 
     order_items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
     customer: Mapped["User"] = relationship(

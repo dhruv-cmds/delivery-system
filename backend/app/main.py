@@ -10,6 +10,8 @@ from app.api.routes import (
     auth, 
     health, 
     menu, 
+    orders,
+    restaurants,
     users
 )
 
@@ -29,9 +31,6 @@ from app.db.models import (
 async def lifespan(app: FastAPI):
 
     async with engine.begin() as conn:
-        # Drop all tables
-        await conn.run_sync(Base.metadata.drop_all)
-
         # Create all tables again
         await conn.run_sync(Base.metadata.create_all)
 
@@ -45,5 +44,9 @@ app.include_router(health.router, prefix="/api")
 
 app.include_router(menu.router, prefix="/api")
 app.include_router(menu.public_router, prefix="/api")
+
+app.include_router(orders.router, prefix="/api")
+
+app.include_router(restaurants.router, prefix="/api")
 
 app.include_router(users.router, prefix="/api")

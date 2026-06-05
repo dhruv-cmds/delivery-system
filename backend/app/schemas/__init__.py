@@ -65,7 +65,7 @@ from .restaurant import (
     
     RestaurantBase,
     RestaurantCreate,
-    RestaurantResponse
+    RestaurantResponse,
 )
 
 

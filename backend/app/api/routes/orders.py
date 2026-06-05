@@ -22,18 +22,14 @@ from app.api import (
 
 router = APIRouter(
     prefix="/order",
-    tags=["Menu"]
-)
-
-public_router = APIRouter(
-    prefix="/order",
-    tags=["Menu"]
+    tags=["Orders"]
 )
 
 @router.post(
-        response_model=OrderResponse,
-        summary="Create order",
-        description="chat gpt add here"
+    "/",
+    response_model=OrderResponse,
+    summary="Create order",
+    description="Only current user can make a order"
 )
 @limiter.limit("3/second")
 async def create_order(
@@ -116,7 +112,7 @@ async def delete_order_by_id(
 
 
 @router.get(
-    "/{menu_item_id}",
+    "/menu_item/{id}",
     response_model=MenuResponse,
     summary="Get menu iten for  order",
     description="Get Order by menu item only admin and restaturant owner can access this",
@@ -125,14 +121,12 @@ async def delete_order_by_id(
 async def get_menu_item_for_order(
         request: Request,
         menu_item_id: int,
-        current_user = Depends(get_access_manager),
         db: AsyncSession = Depends(get_db)
     ):
 
     return await order_query_service.get_menu_item_for_order(
         db,
         menu_item_id,
-        current_user
     )
 
 
