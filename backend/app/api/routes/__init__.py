@@ -4,6 +4,16 @@ from .auth import (
     login
 )
 
+from .delivery_partner import (
+    create_delivery_partner,
+    get_delivery_partner_by_user_id,
+    get_delivery_partner_by_id,
+    get_all_delivery_partners,
+    update_delivery_partner,
+    update_location,
+    delete_delivery_partner
+)
+
 from .health import (
 
     health_check

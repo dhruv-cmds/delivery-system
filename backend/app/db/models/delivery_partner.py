@@ -18,6 +18,9 @@ from sqlalchemy.orm import relationship, mapped_column, Mapped
 
 from datetime import datetime
 
+from app.core import VehicleTypeStatus
+from sqlalchemy import Enum
+
 from app.db import Base
 
 if TYPE_CHECKING:
@@ -40,8 +43,8 @@ class DeliveryPartner(Base):
         index=True
     )
 
-    vehicle_type: Mapped[str] = mapped_column(
-        String(100),
+    vehicle_type: Mapped[VehicleTypeStatus] = mapped_column(
+        Enum(VehicleTypeStatus),
         nullable=False
     )
 

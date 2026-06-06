@@ -13,6 +13,7 @@ from app.core import (
     logger,
 
     UserRole,
+    VehicleTypeStatus,
 
     DatabaseError,
 
@@ -43,15 +44,26 @@ async def create_delivery_partner(
         )
 
         raise DeliveryPartnerAlreadyExistsError()
+    
+    if current_user.role == UserRole.RESTAURANT_OWNER:
 
+        logger.warning(
+            "Restaurant owner can't create a delivery partner"
+        )
+
+        raise PermissionDeniedError()
+    
     partner = DeliveryPartner(
         user_id=current_user.id,
         vehicle_type=data.vehicle_type,
     )
 
-    current_user.role = UserRole.DELIVERY_PARTNER
 
     try:
+
+        if current_user.role == UserRole.CUSTOMER:
+
+            current_user.role = UserRole.DELIVERY_PARTNER
 
         db.add(partner)
 
@@ -135,16 +147,7 @@ async def get_delivery_partner_by_id(
 
 async def get_all_delivery_partners(
         db: AsyncSession,
-        current_user: User
     ):
-
-    if current_user.role != UserRole.ADMIN:
-
-        logger.warning(
-            "Delivery partner listing denied because the user is not an admin"
-        )
-
-        raise PermissionDeniedError()
 
     result = await db.execute(
         select(DeliveryPartner)
@@ -159,7 +162,7 @@ async def get_all_delivery_partners(
 async def update_delivery_partner(
         db: AsyncSession,
         partner_id: int,
-        data: DeliveryPartnerCreate,
+        data: VehicleTypeStatus,
         current_user: User,
     ):
 
@@ -179,7 +182,7 @@ async def update_delivery_partner(
 
         raise PermissionDeniedError()
 
-    partner.vehicle_type = data.vehicle_type
+    partner.vehicle_type = data
 
     try:
 

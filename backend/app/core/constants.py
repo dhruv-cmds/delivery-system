@@ -24,6 +24,11 @@ class RestaurantStatus(str, Enum):
     CLOSE = "CLOSE"
 
 
+class VehicleTypeStatus(str, Enum):
+    TWO_WHEELER = "Two wheeler"
+    FOUR_WHEELER = "Four wheeler"
+
+
 class MenuStatus(str, Enum):
 
     AVAILABLE = "AVAILABLE"

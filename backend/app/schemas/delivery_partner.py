@@ -4,6 +4,7 @@ from pydantic import (
     Field
 )
 
+from app.core import VehicleTypeStatus
 
 from decimal import Decimal
 
@@ -11,7 +12,13 @@ from app.core import DeliveryPartnerStatus
 
 class DeliveryPartnerBase(BaseModel):
 
-    vehicle_type: str = Field(..., examples=["Two wheeler", "Four wheeler"])
+    vehicle_type: VehicleTypeStatus = Field(
+        ..., 
+        examples=[
+            VehicleTypeStatus.TWO_WHEELER,
+            VehicleTypeStatus.FOUR_WHEELER
+        ]
+    )
 
 class DeliveryPartnerCreate(DeliveryPartnerBase):
 
@@ -20,7 +27,7 @@ class DeliveryPartnerCreate(DeliveryPartnerBase):
 class DeliveryPartnerResponse(DeliveryPartnerBase):
 
     id: int = Field(..., examples=[603])
-    user_id: int = Field(None, examples=[79])
+    user_id: int = Field(..., examples=[79])
     status: DeliveryPartnerStatus = Field(..., examples=[DeliveryPartnerStatus.AVAILABLE])
 
     rating: Decimal | None = Field(None, examples=[5.00, 3.9])

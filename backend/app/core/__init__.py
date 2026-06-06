@@ -10,6 +10,7 @@ from .constants import (
     DeliveryPartnerStatus,
     UserStatus,
     RestaurantStatus,
+    VehicleTypeStatus,
     MenuStatus,
     OrderStatus,
     PaymentStatus,

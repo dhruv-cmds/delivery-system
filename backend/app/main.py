@@ -44,6 +44,8 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth.router, prefix="/api")
 
+app.include_router(delivery_partner.router, prefix="/api")
+
 app.include_router(health.router, prefix="/api")
 
 app.include_router(menu.router, prefix="/api")
