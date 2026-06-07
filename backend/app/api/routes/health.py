@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from sqlalchemy import text
 from app.db import engine
 
-router = APIRouter(tags=["Health"])
+router = APIRouter(tags=["HEALTH"])
 
 @router.get("/health")
 async def health_check():

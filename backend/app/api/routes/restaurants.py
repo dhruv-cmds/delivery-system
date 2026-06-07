@@ -22,6 +22,10 @@ router = APIRouter(
     tags=["RESTAURANT"]
 )
 
+public_router = APIRouter(
+    prefix="/restaurant",
+    tags=["PUBLIC RESTAURANT"]
+)
 
 @router.post(
     "/",
@@ -44,7 +48,7 @@ async def create_restaurant(
     )
 
 
-@router.get(
+@public_router.get(
     "/{restaurant_id}",
     response_model=RestaurantResponse,
     summary="Get a restaurant by resaurant id",

@@ -13,11 +13,11 @@ from app.api import (
 )
 
 router = APIRouter(
-        tags=["Menu"],
+        tags=["MENU"],
         dependencies=[Depends(get_current_user)]
     )
 
-public_router = APIRouter(tags=["Public Menu"])
+public_router = APIRouter(tags=["PUBLIC MENU"])
 
 
 @router.post(

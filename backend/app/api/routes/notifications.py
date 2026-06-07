@@ -15,12 +15,12 @@ from app.api import (
 
 routes = APIRouter(
     prefix="/notification",
-    tags=["Notification"]
+    tags=["NOTIFICATION"]
 )
 
 admin = APIRouter(
     prefix="/admin/notification",
-    tags=["Admin Notifications"]
+    tags=["ADMIN NOTIFICATIONS"]
 )
 
 

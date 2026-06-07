@@ -11,17 +11,18 @@ from app.services import delivery_partner_service
 from app.api import get_db
 from app.api import (
     get_current_user,
-    require_admin_access
+    require_admin_access,
+    get_access_manager
 )
 
 router = APIRouter(
     prefix="/delivery_partner",
-    tags=["Delivery Partner"]
+    tags=["DELIVERY PARTNER"]
 )
 
 public_router = APIRouter(
     prefix="/delivery_partner",
-    tags=["Delivery Partner Public"]
+    tags=["DELIVERY PARTNER PUBLIC"]
 )
 
 @router.post(
@@ -55,7 +56,7 @@ async def get_delivery_partner_by_user_id(
         request: Request,
         user_id: int,
         db: AsyncSession = Depends(get_db),
-        current_user = Depends(require_admin_access)
+        current_user = Depends(get_access_manager)
     ):
 
     return await delivery_partner_service.get_delivery_partner_by_user_id(

@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas import (
 
     MenuResponse,
-    OrderItemCreate,
     OrderCreate,
     OrderResponse,
 )
@@ -22,7 +21,7 @@ from app.api import (
 
 router = APIRouter(
     prefix="/order",
-    tags=["Orders"]
+    tags=["ORDERS"]
 )
 
 @router.post(

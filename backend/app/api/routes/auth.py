@@ -13,7 +13,7 @@ from app.schemas import (
     TokenResponse,
 )
 
-router = APIRouter(tags=["Authentication"])
+router = APIRouter(tags=["AUTHENTICATION"])
 
 
 @router.post(
