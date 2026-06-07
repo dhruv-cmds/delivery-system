@@ -11,13 +11,17 @@ from app.services import delivery_partner_service
 from app.api import get_db
 from app.api import (
     get_current_user,
-    get_access_manager,
     require_admin_access
 )
 
 router = APIRouter(
     prefix="/delivery_partner",
     tags=["Delivery Partner"]
+)
+
+public_router = APIRouter(
+    prefix="/delivery_partner",
+    tags=["Delivery Partner Public"]
 )
 
 @router.post(
@@ -60,7 +64,7 @@ async def get_delivery_partner_by_user_id(
     )
 
 
-@router.get(
+@public_router.get(
     "/id/{partner_id}",
     response_model=DeliveryPartnerResponse,
     summary="Get delivery partner by delivery partner id",

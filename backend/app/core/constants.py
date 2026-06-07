@@ -20,8 +20,12 @@ class UserStatus(str, Enum):
 
 class RestaurantStatus(str, Enum):
 
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    SUSPENDED = "SUSPENDED"
     OPEN = "OPEN"
-    CLOSE = "CLOSE"
+    CLOSED = "CLOSED"
 
 
 class VehicleTypeStatus(str, Enum):
@@ -34,6 +38,18 @@ class MenuStatus(str, Enum):
     AVAILABLE = "AVAILABLE"
     UNAVAILABLE = "UNAVAILABLE"
 
+class NotificationType(str, Enum):
+
+    ORDER_UPDATE = "ORDER_UPDATE"
+    PAYMENT = "PAYMENT"
+    DELIVERY = "DELIVERY"
+    SYSTEM = "SYSTEM"
+
+class NotificationStatus(str, Enum):
+    
+    UNREAD = "UNREAD"
+    READ = "READ"
+
 class OrderStatus(str, Enum):
 
     PENDING = "PENDING"
@@ -43,6 +59,7 @@ class OrderStatus(str, Enum):
     DELIVERED = "DELIVERED"
     REPLACE = "REPLACE"
     CANCELLED = "CANCELLED"
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
 
 class PaymentStatus(str, Enum):
 

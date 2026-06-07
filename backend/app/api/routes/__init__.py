@@ -32,7 +32,6 @@ from .menu import (
 from .orders import (
 
     create_order,
-    update_order_by_id,
     update_order_status,
     delete_order_by_id,
     get_menu_item_for_order,

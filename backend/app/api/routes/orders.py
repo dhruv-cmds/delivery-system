@@ -51,21 +51,6 @@ async def create_order(
     summary="Update inforamtion about order",
     description="Update Order filed by order id such as restaurant id total price etc",
 )
-@limiter.limit("3/second")
-async def update_order_by_id(
-        request: Request,
-        order_id: int,
-        order_data: OrderItemCreate,
-        current_user = Depends(get_access_manager),
-        db: AsyncSession = Depends(get_db)
-    ):
-
-    return await order_service.update_order_by_id(
-        db,
-        order_id,
-        order_data,
-        current_user
-    )
 
 
 @router.patch(

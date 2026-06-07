@@ -15,6 +15,11 @@ from datetime import datetime
 
 from app.db import Base
 
+from app.core import NotificationStatus, NotificationType
+
+from sqlalchemy import Enum
+
+
 if TYPE_CHECKING:
     from user import User
 
@@ -39,15 +44,15 @@ class Notification(Base):
 
     # EXAMPLES:
     # ORDER_UPDATE / PAYMENT / DELIVERY / SYSTEM
-    notification_type: Mapped[str] = mapped_column(
-        String(100),
+    notification_type: Mapped[NotificationType] = mapped_column(
+        Enum(NotificationType),
         nullable=False,
         index=True
     )
 
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default="UNREAD",
+    status: Mapped[NotificationStatus] = mapped_column(
+        Enum(NotificationStatus),
+        default=NotificationStatus.UNREAD,
         nullable=False,
         index=True
     )

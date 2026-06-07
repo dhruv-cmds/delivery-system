@@ -49,7 +49,6 @@ from .order_query_service import (
 from .order_service import (
 
     create_order,
-    update_order_by_id,
     update_order_status,
     delete_order_by_id
 )

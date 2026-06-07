@@ -12,6 +12,8 @@ from .constants import (
     RestaurantStatus,
     VehicleTypeStatus,
     MenuStatus,
+    NotificationType,
+    NotificationStatus,
     OrderStatus,
     PaymentStatus,
 

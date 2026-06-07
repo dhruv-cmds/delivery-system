@@ -1,46 +1,55 @@
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db.models import Order, OrderItem, User
-
-from app.schemas import OrderCreate, OrderItemCreate
-
-from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core import (
+from app.db.models import Order, OrderItem, User
+from app.schemas import OrderCreate, OrderItemCreate
 
+from app.core import (
     UserRole,
     OrderStatus,
+    NotificationType,
 
     MAX_ORDER_TIMES,
     MAX_TRANSFER_LIMIT,
 
     logger,
-    
+
     DatabaseError,
     EmptyOrderError,
     InvalidOrderStateError,
     OrderAlreadyDeliveredError,
     OrderItemNotFoundError,
     OrderNotFoundError,
-    OrderStatus,
     PermissionDeniedError,
-    InvalidOperationError
+    InvalidOperationError,
 )
 
-from app.services.order_query_service import (
+from app.services import (
     get_all_orders,
     get_menu_item_for_order,
     get_order_by_id,
+    notification_service,
 )
 
 
 FINAL_ORDER_STATUSES = {
     OrderStatus.DELIVERED,
     OrderStatus.CANCELLED,
+}
+
+
+ORDER_STATUS_MESSAGES = {
+    OrderStatus.PENDING: "Your order is pending.",
+    OrderStatus.ACCEPTED: "Your order has been accepted.",
+    OrderStatus.PREPARING: "Your order is being prepared.",
+    OrderStatus.OUT_FOR_DELIVERY: "Your order is out for delivery.",
+    OrderStatus.DELIVERED: "Your order has been delivered.",
+    OrderStatus.CANCELLED: "Your order has been cancelled.",
+    OrderStatus.REPLACE: "Your order has been replaced.",
 }
 
 
@@ -63,15 +72,13 @@ async def create_order(
             "Order creation failed because the quantity was not positive"
         )
         raise EmptyOrderError("Order item quantity must be greater than zero")
-    
+
     if order_data.quantity > MAX_ORDER_TIMES:
 
         logger.warning(
             "Order creation failed because the quantity is above the allowed limit"
         )
-
         raise InvalidOperationError()
-    
 
     menu_item = await get_menu_item_for_order(
         db,
@@ -85,7 +92,6 @@ async def create_order(
         logger.warning(
             "Order creation failed because the total price is above the transfer limit"
         )
-
         raise InvalidOperationError()
 
     new_order = Order(
@@ -106,12 +112,18 @@ async def create_order(
 
     try:
 
-
         db.add(new_order)
 
         await db.flush()
 
         await db.commit()
+
+        await notification_service.create_notification(
+            db=db,
+            user_id=current_user.id,
+            message="Your order has been placed successfully.",
+            notification_type=NotificationType.ORDER_UPDATE
+        )
 
         result = await db.execute(
             select(Order)
@@ -121,11 +133,10 @@ async def create_order(
 
         new_order = result.scalar_one()
 
-
         await db.refresh(new_order)
 
         return new_order
-    
+
     except IntegrityError:
 
         await db.rollback()
@@ -134,101 +145,11 @@ async def create_order(
         raise OrderItemNotFoundError()
 
     except Exception:
-        
+
         await db.rollback()
 
         logger.exception("Unexpected error while creating order")
         raise DatabaseError()
-
-
-async def update_order_by_id(
-        db: AsyncSession,
-        order_id: int,
-        order_data: OrderItemCreate,
-        current_user: User,
-    ):
-    
-    order = await get_order_by_id(
-        db,
-        order_id,
-        current_user,
-    )
-
-    if current_user.role == UserRole.RESTAURANT_OWNER:
-
-        if order.restaurant.owner_id != current_user.id:
-        
-            logger.warning(
-                "Order item update denied because the order belongs to another restaurant owner"
-            )
-            raise PermissionDeniedError()
-
-    if order.status == OrderStatus.DELIVERED:
-
-        logger.warning(
-            "Order item update denied because the order is already delivered"
-        )
-        raise OrderAlreadyDeliveredError()
-
-    if order.status in FINAL_ORDER_STATUSES:
-
-        logger.warning(
-            "Order item update denied because the order is in a final state"
-        )
-        raise InvalidOrderStateError(order.status)
-
-    if order_data.quantity <= 0:
-
-        logger.warning(
-            "Order item update failed because the quantity was not positive"
-        )
-        raise EmptyOrderError("Order item quantity must be greater than zero")
-
-    menu_item = await get_menu_item_for_order(
-        db,
-        order_data.menu_item_id,
-    )
-
-    order_item = order.order_items[0] if order.order_items else None
-
-    if not order_item:
-
-        logger.warning(
-            "Order item update failed because the order item was not found"
-        )
-        raise OrderItemNotFoundError()
-
-    item_total = menu_item.price * Decimal(order_data.quantity)
-
-    order.restaurant_id = menu_item.restaurant_id
-    order.total_price = item_total
-    order_item.menu_item_id = menu_item.id
-    order_item.quantity = order_data.quantity
-    order_item.unit_price = menu_item.price
-    order_item.total_price = item_total
-
-    try:
-
-        await db.commit()
-
-        await db.refresh(order)
-
-        return order
-
-    except IntegrityError:
-
-        await db.rollback()
-
-        logger.exception("Database integrity error while updating order")
-        raise OrderItemNotFoundError()
-
-    except Exception:
-
-        await db.rollback()
-
-        logger.exception("Unexpected error while updating order")
-        raise DatabaseError()
-    
 
 async def update_order_status(
         db: AsyncSession,
@@ -259,9 +180,20 @@ async def update_order_status(
 
     order.status = status
 
+    message = ORDER_STATUS_MESSAGES.get(status)
+
     try:
 
         await db.commit()
+
+        if message:
+
+            await notification_service.create_notification(
+                db=db,
+                user_id=order.customer_id,
+                message=message,
+                notification_type=NotificationType.ORDER_UPDATE
+            )
 
         await db.refresh(order)
 
@@ -310,7 +242,7 @@ async def delete_order_by_id(
         await db.commit()
 
         return deleted_order
-    
+
     except IntegrityError:
 
         await db.rollback()

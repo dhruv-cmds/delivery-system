@@ -8,6 +8,7 @@ from typing import Literal
 
 from datetime import datetime
 
+from app.core import NotificationType, NotificationStatus
 
 class NotificationBase(BaseModel):
 
@@ -15,23 +16,17 @@ class NotificationBase(BaseModel):
     
     message: str = Field(..., examples=["Your order is being prepared"])
 
-    notification_type: Literal[
-
-        "ORDER_UPDATE",
-        "PAYMENT",
-        "DELIVERY",
-        "SYSTEM"
-    ] = Field(..., examples=["ORDER_UPDATE"])
+    notification_type: NotificationType = Field(..., examples=[NotificationType.ORDER_UPDATE])
 
 
 class NotificationCreate(NotificationBase):
 
-    pass 
+    pass
 
 class NotificationResponse(NotificationBase):
 
     id: int = Field(..., examples=[1])
-    status: Literal["UNREAD", "READ"] = Field(..., examples=["UNREAD"])
+    status: NotificationStatus = Field(..., examples=[NotificationStatus.UNREAD])
     created_at: datetime = Field(..., examples=["2026-05-26T14:30:00"])
 
     model_config = {

@@ -17,7 +17,7 @@ router = APIRouter(
         dependencies=[Depends(get_current_user)]
     )
 
-public_router = APIRouter(tags=["Menu_Public"])
+public_router = APIRouter(tags=["Public Menu"])
 
 
 @router.post(

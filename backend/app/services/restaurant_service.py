@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Restaurant, User
 from app.schemas import RestaurantCreate
+from app.services import notification_service
 
 from app.core import (
 
@@ -11,6 +12,7 @@ from app.core import (
 
     UserRole,
     RestaurantStatus,
+    NotificationType,
 
     DatabaseError,
     
@@ -20,6 +22,14 @@ from app.core import (
     PermissionDeniedError,
 )
 
+RESTAURANT_STATUS_MESSAGES = {
+    RestaurantStatus.PENDING: "Your restaurant is pending review.",
+    RestaurantStatus.APPROVED: "Your restaurant has been approved.",
+    RestaurantStatus.REJECTED: "Your restaurant has been rejected.",
+    RestaurantStatus.SUSPENDED: "Your restaurant has been suspended.",
+    RestaurantStatus.CLOSED: "Your restaurant has been closed.",
+    RestaurantStatus.OPEN: "Your restaurant is open.",
+}
 
 async def create_restaurant(
         db: AsyncSession,
@@ -42,6 +52,14 @@ async def create_restaurant(
             current_user.role = UserRole.RESTAURANT_OWNER
           
         await db.commit()
+
+        await notification_service.create_notification(
+
+            db=db,
+            user_id=current_user.id,
+            message="Your restaurant has been created successfully.",
+            notification_type=NotificationType.SYSTEM
+        )
 
         await db.refresh(new_restaurant)
 
@@ -114,6 +132,13 @@ async def update_restaurant(
     try:
         await db.commit()
 
+        await notification_service.create_notification(
+            db=db,
+            user_id=restaurant.owner_id,
+            message="Your restaurant details have been updated.",
+            notification_type=NotificationType.SYSTEM
+        )
+
         await db.refresh(restaurant)
 
         return restaurant
@@ -163,12 +188,22 @@ async def update_restaurant_status(
 
         raise RestaurantStatusAlreadySetError()
     
-    
     restaurant.status = status
 
     try:
 
         await db.commit()
+
+        message = RESTAURANT_STATUS_MESSAGES.get(status)
+
+        if message:
+
+            await notification_service.create_notification(
+                db=db,
+                user_id=restaurant.owner_id,
+                message=message,
+                notification_type=NotificationType.SYSTEM
+            )
 
         await db.refresh(restaurant)
 
@@ -214,6 +249,13 @@ async def delete_restaurant_by_id(
         await db.delete(restaurant)
 
         await db.commit()
+
+        await notification_service.create_notification(
+            db=db,
+            user_id=restaurant.owner_id,
+            message="Your restaurant has been removed.",
+            notification_type=NotificationType.SYSTEM
+        )
 
         return deleted_restaurant
 
