@@ -62,21 +62,24 @@ async def create_order(
     if current_user.role != UserRole.CUSTOMER:
 
         logger.warning(
-            "Order creation denied because the user is not a customer"
+            "Order creation denied: user ID %s is not a customer",
+            current_user.id
         )
         raise PermissionDeniedError()
 
     if order_data.quantity <= 0:
 
         logger.warning(
-            "Order creation failed because the quantity was not positive"
+            "Order creation failed: invalid quantity (%s)",
+            order_data.quantity
         )
         raise EmptyOrderError("Order item quantity must be greater than zero")
 
     if order_data.quantity > MAX_ORDER_TIMES:
 
         logger.warning(
-            "Order creation failed because the quantity is above the allowed limit"
+            "Order creation failed: quantity exceeds limit (%s)",
+            order_data.quantity
         )
         raise InvalidOperationError()
 
@@ -90,7 +93,8 @@ async def create_order(
     if item_total > MAX_TRANSFER_LIMIT:
 
         logger.warning(
-            "Order creation failed because the total price is above the transfer limit"
+            "Order creation failed: total amount exceeds limit (%s)",
+            item_total
         )
         raise InvalidOperationError()
 
@@ -135,6 +139,12 @@ async def create_order(
 
         await db.refresh(new_order)
 
+        logger.info(
+            "Order created successfully (order_id=%s, customer_id=%s)",
+            new_order.id,
+            current_user.id
+        )
+
         return new_order
 
     except IntegrityError:
@@ -167,14 +177,16 @@ async def update_order_status(
     if order.status == OrderStatus.DELIVERED:
 
         logger.warning(
-            "Order status update denied because the order is already delivered"
+            "Order status update denied: order already delivered (order_id=%s)",
+            order_id
         )
         raise OrderAlreadyDeliveredError()
 
     if order.status == OrderStatus.CANCELLED:
 
         logger.warning(
-            "Order status update denied because the order is already cancelled"
+            "Order status update denied: order already cancelled (order_id=%s)",
+            order_id
         )
         raise InvalidOrderStateError(order.status)
 
@@ -196,6 +208,12 @@ async def update_order_status(
             )
 
         await db.refresh(order)
+
+        logger.info(
+            "Order status updated successfully (order_id=%s, status=%s)",
+            order_id,
+            status
+        )
 
         return order
 
@@ -222,14 +240,17 @@ async def delete_order_by_id(
     if order.status == OrderStatus.DELIVERED:
 
         logger.warning(
-            "Order deletion denied because the order is already delivered"
+            "Order deletion denied: order already delivered (order_id=%s)",
+            order_id
         )
         raise OrderAlreadyDeliveredError()
 
     if order.status in FINAL_ORDER_STATUSES:
 
         logger.warning(
-            "Order deletion denied because the order is in a final state"
+            "Order deletion denied: order is in a final state (order_id=%s, status=%s)",
+            order_id,
+            order.status
         )
         raise InvalidOrderStateError(order.status)
 
@@ -240,6 +261,11 @@ async def delete_order_by_id(
         await db.delete(order)
 
         await db.commit()
+
+        logger.info(
+            "Order deleted successfully (order_id=%s)",
+            order_id
+        )
 
         return deleted_order
 

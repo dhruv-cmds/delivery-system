@@ -27,8 +27,8 @@ admin = APIRouter(
 @routes.get(
     "/",
     response_model=list[NotificationResponse],
-    summary="Get my notifications",
-    description="Return all notifications belonging to the authenticated user."
+    summary="Get notifications",
+    description="Retrieve all notifications for the authenticated user."
 )
 @limiter.limit("120/minute")
 async def get_user_notifications(
@@ -46,8 +46,8 @@ async def get_user_notifications(
 @routes.get(
     "/{notification_id}",
     response_model=NotificationResponse,
-    summary="Get notification by ID",
-    description="Return a notification if it belongs to the authenticated user."
+    summary="Get notification",
+    description="Retrieve a notification by its ID."
 )
 @limiter.limit("120/minute")
 async def get_notification_by_id(
@@ -68,7 +68,7 @@ async def get_notification_by_id(
     "/{notification_id}/read",
     response_model=NotificationResponse,
     summary="Mark notification as read",
-    description="Mark a notification belonging to the authenticated user as read."
+    description="Mark a notification as read."
 )
 @limiter.limit("60/minute")
 async def mark_notification_as_read(
@@ -88,7 +88,7 @@ async def mark_notification_as_read(
 @routes.patch(
     "/read-all",
     summary="Mark all notifications as read",
-    description="Mark all notifications belonging to the authenticated user as read."
+    description="Mark all user notifications as read."
 )
 @limiter.limit("20/minute")
 async def mark_all_notifications_as_read(
@@ -106,7 +106,7 @@ async def mark_all_notifications_as_read(
 @routes.delete(
     "/{notification_id}",
     summary="Delete notification",
-    description="Delete a notification belonging to the authenticated user."
+    description="Delete a notification by its ID."
 )
 @limiter.limit("60/minute")
 async def delete_notification(
@@ -127,7 +127,7 @@ async def delete_notification(
     "/all",
     response_model=list[NotificationResponse],
     summary="Get all notifications",
-    description="Return all notifications in the system. Admin access only."
+    description="Retrieve all notifications in the system."
 )
 @limiter.limit("60/minute")
 async def get_all_notifications(
@@ -145,8 +145,8 @@ async def get_all_notifications(
 @admin.get(
     "/user/{user_id}",
     response_model=list[NotificationResponse],
-    summary="Get notifications by user ID",
-    description="Return all notifications belonging to a specific user. Admin access only."
+    summary="Get user notifications",
+    description="Retrieve all notifications for a specific user."
 )
 @limiter.limit("60/minute")
 async def get_notifications_by_user_id(

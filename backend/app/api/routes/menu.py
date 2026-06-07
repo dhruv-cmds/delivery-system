@@ -25,8 +25,8 @@ public_router = APIRouter(tags=["PUBLIC MENU"])
     response_model=MenuResponse,
     summary="Create a menu item",
     description=(
-        "Create a menu item for a restaurant. Only admins and restaurant owners "
-        "can create menu items."
+        "Create a new menu item for a restaurant. "
+        "Accessible to administrators and restaurant owners."
     )
 )
 @limiter.limit("3/second")
@@ -43,12 +43,11 @@ async def create_menu_item(
     )
 
 
-
 @public_router.get(
     "/menus/{menu_id}",
     response_model=MenuResponse,
-    summary="Get a menu item by ID",
-    description="Return the details for a specific menu item."
+    summary="Get menu item by ID",
+    description="Retrieve a menu item by its unique ID."
 )
 @limiter.limit("3/second")
 async def get_menu_item_by_id(
@@ -66,8 +65,8 @@ async def get_menu_item_by_id(
 @public_router.get(
     "/restaurants/{restaurant_id}/menus",
     response_model=list[MenuResponse],
-    summary="List menu items by restaurant",
-    description="Return all menu items that belong to the given restaurant."
+    summary="Get restaurant menu items",
+    description="Retrieve all menu items for a specific restaurant."
 )
 @limiter.limit("3/second")
 async def get_menu_items_by_restaurant_id(
@@ -87,8 +86,8 @@ async def get_menu_items_by_restaurant_id(
     response_model=MenuResponse,
     summary="Update a menu item",
     description=(
-        "Update a menu item's details. Only admins and the restaurant owner "
-        "can update the item."
+        "Update menu item details. "
+        "Accessible to administrators and the restaurant owner."
     )
 )
 @limiter.limit("3/second")
@@ -113,8 +112,8 @@ async def update_menu_item(
     response_model=MenuResponse,
     summary="Delete a menu item",
     description=(
-        "Delete a menu item by ID. Only admins and the restaurant owner can "
-        "delete the item."
+        "Delete a menu item by ID. "
+        "Accessible to administrators and the restaurant owner."
     )
 )
 @limiter.limit("3/second")
@@ -135,10 +134,10 @@ async def delete_menu_item(
 @router.patch(
     "/menus/{menu_id}/status",
     response_model=MenuResponse,
-    summary="Change a menu item's status",
+    summary="Update menu item status",
     description=(
-        "Update the availability status for a menu item. Only admins and the "
-        "restaurant owner can change the status."
+        "Update the availability status of a menu item. "
+        "Accessible to administrators and the restaurant owner."
     )
 )
 @limiter.limit("3/second")

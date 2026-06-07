@@ -38,7 +38,11 @@ async def create_user(
 
     if exist:
 
-        logger.warning("User creation skipped because the account already exists")
+        logger.warning(
+            "User already exists (email=%s)",
+            user.email.lower()
+        )
+
         raise UserAlreadyExistsError()
     
     
@@ -58,26 +62,32 @@ async def create_user(
 
         await db.refresh(new_user)
 
-        return new_user
+        logger.info(
+            "User created successfully (user_id=%s)",
+            new_user.id
+        )
 
+        return new_user
+    
     except IntegrityError:
 
         await db.rollback()
 
         logger.exception("Database integrity error while creating user")
+
         raise UserAlreadyExistsError()
     
     except Exception:
-
+        
         await db.rollback()
 
         logger.exception("Unexpected error while creating user account")
+
         raise DatabaseError()
     
-
-async def get_user_by_id (
-        db:AsyncSession,
-        user_id:int,
+async def get_user_by_id(
+        db: AsyncSession,
+        user_id: int,
     ):
 
     result = await db.execute(
@@ -89,25 +99,36 @@ async def get_user_by_id (
 
     if not user:
 
-        logger.warning("User lookup failed because the user was not found")
+        logger.warning(
+            "User not found (user_id=%s)",
+            user_id
+        )
+
         raise UserNotFoundError()
     
+    logger.info(
+        "User retrieved successfully (user_id=%s)",
+        user.id
+    )
+
     return user
 
-
-async def get_all_users (
-        db:AsyncSession,
+async def get_all_users(
+        db: AsyncSession,
     ):
 
     result = await db.execute(
         select(User)
     )
 
+    logger.info(
+        "All users retrieved successfully"
+    )
+    
     return result.scalars().all()
     
-
 async def get_user_by_email(
-        db:AsyncSession,
+        db: AsyncSession,
         user_email: str,
     ):  
 
@@ -120,9 +141,19 @@ async def get_user_by_email(
 
     if not user:
 
-        logger.warning("User lookup failed because the user was not found")
+        logger.warning(
+            "User not found (email=%s)",
+            user_email
+        )
+
         raise UserNotFoundError()
     
+    logger.info(
+
+        "User retrieved successfully (email=%s)",
+        user_email
+    )
+
     return user
 
 async def get_user_by_username(
@@ -135,4 +166,20 @@ async def get_user_by_username(
         .where(User.username == username)
     )
     
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+
+    if not user:
+
+        logger.warning(
+            "User not found (username=%s)",
+            username
+        )
+        
+        return None
+
+    logger.info(
+        "User retrieved successfully (username=%s)",
+        username
+    )
+
+    return user

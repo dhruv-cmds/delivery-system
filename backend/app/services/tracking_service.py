@@ -9,11 +9,12 @@ from app.core import (
 
 
 async def create_tracking(
-    db: AsyncSession,
-    order_id: int,
-    latitude,
-    longitude,
-):
+        db: AsyncSession,
+        order_id: int,
+        latitude,
+        longitude,
+    ):
+    
     tracking = OrderTracking(
         order_id=order_id,
         latitude=latitude,
@@ -26,7 +27,12 @@ async def create_tracking(
         await db.commit()
 
         await db.refresh(tracking)
-
+        
+        logger.info(
+            "Order tracking created successfully (order_id=%s)",
+            order_id
+        )
+        
         return tracking
 
     except Exception:
@@ -48,6 +54,11 @@ async def get_tracking_by_order(
         select(OrderTracking)
         .where(OrderTracking.order_id == order_id)
         .order_by(OrderTracking.created_at.desc())
+    )
+
+    logger.info(
+        "Order tracking retrieved successfully (order_id=%s)",
+        order_id
     )
 
     return result.scalars().all()

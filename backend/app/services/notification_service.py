@@ -2,8 +2,6 @@ from sqlalchemy import select, update
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas import NotificationCreate
-
 from app.core import NotificationType, NotificationStatus
 
 from app.db.models import Notification, User
@@ -41,6 +39,12 @@ async def create_notification (
 
         await db.refresh(notification)
 
+        logger.info(
+            "Notification created successfully (user_id=%s, type=%s)",
+            user_id,
+            notification_type
+        )
+        
         return notification
         
     except Exception:
@@ -48,6 +52,7 @@ async def create_notification (
         await db.rollback()
 
         logger.exception("Unexpected error while creating notification")
+
         raise DatabaseError()
     
 
@@ -84,8 +89,11 @@ async def get_notification_by_id(
     if not notification:
 
         logger.warning(
-            "Notification not found or does not belong to the user"
+            "Notification not found or access denied (notification_id=%s, user_id=%s)",
+            notification_id,
+            current_user.id
         )
+
         raise PermissionDeniedError()
 
     return notification
@@ -110,8 +118,10 @@ async def mark_notification_as_read(
     if not notification:
 
         logger.warning(
-            "Notification read failed because the notification was not found"
-        )
+        "Notification not found (notification_id=%s, user_id=%s)",
+        notification_id,
+        current_user.id
+    )
         return None
     
     notification.status = NotificationStatus.READ
@@ -152,6 +162,11 @@ async def mark_all_notifications_as_read(
 
         await db.commit()
 
+        logger.info(
+            "All notifications marked as read (user_id=%s)",
+            current_user.id
+        )
+        
         return {
             "message": "All notifications marked as read"
         }
@@ -186,7 +201,9 @@ async def delete_notification(
     if not notification:
 
         logger.warning(
-            "Notification deletion failed because the notification was not found"
+            "Notification deletion failed: notification not found (notification_id=%s, user_id=%s)",
+            notification_id,
+            current_user.id
         )
 
         return None
@@ -196,6 +213,11 @@ async def delete_notification(
         await db.delete(notification)
 
         await db.commit()
+
+        logger.info(
+            "Notification deleted successfully (notification_id=%s)",
+            notification_id
+        )
 
         return True
 
@@ -215,8 +237,10 @@ async def get_all_notifications(
     if current_user.role != UserRole.ADMIN:
 
         logger.warning(
-            "Notfications access denied because the user is not admin"
+            "Notification access denied: user ID %s is not an administrator",
+            current_user.id
         )
+
         raise PermissionDeniedError()
     
     result = await db.execute (
@@ -236,7 +260,10 @@ async def get_notifications_by_user_id(
     if current_user.role != UserRole.ADMIN:
 
         logger.warning(
-        "Notification access denied beacause the user is not admin")
+            "User notification access denied: user ID %s is not an administrator",
+            current_user.id
+        )
+        
         raise PermissionDeniedError()
     
 

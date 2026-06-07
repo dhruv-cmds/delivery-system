@@ -46,8 +46,10 @@ async def create_menu_item(
     if not restaurant:
 
         logger.warning(
-            "Menu item creation failed because the restaurant was not found"
+            "Menu item creation failed: restaurant not found (restaurant_id=%s)",
+            menu.restaurant_id
         )
+
         raise RestaurantNotFoundError()
 
     if (
@@ -55,8 +57,10 @@ async def create_menu_item(
         restaurant.owner_id != current_user.id
     ):
 
+        
         logger.warning(
-            "Menu item creation denied because the restaurant belongs to another owner"
+            "Menu item creation denied: user ID %s is not the restaurant owner",
+            current_user.id
         )
         raise PermissionDeniedError()
 
@@ -75,8 +79,11 @@ async def create_menu_item(
     if existing_menu:
 
         logger.warning(
-            "Menu item creation skipped because the item already exists"
+            "Menu item already exists (restaurant_id=%s, item_name='%s')",
+            menu.restaurant_id,
+            menu.item_name
         )
+
         raise MenuAlreadyExistsError()
     
 
@@ -95,6 +102,11 @@ async def create_menu_item(
         await db.commit()
 
         await db.refresh(new_menu)
+
+        logger.info(
+            "Menu item created successfully (menu_id=%s)",
+            new_menu.id
+        )
 
         return new_menu
 
@@ -128,8 +140,10 @@ async def get_menu_item_by_id (
     if not menu:
 
         logger.warning(
-            "Menu item lookup failed because the item was not found"
+            "Menu item not found (menu_id=%s)",
+            menu_id
         )
+
         raise MenuNotFoundError()
     
     return menu
@@ -168,8 +182,10 @@ async def update_menu_item(
     if not restaurant:
 
         logger.warning(
-            "Menu item update failed because the restaurant was not found"
+            "Menu item update failed: restaurant not found (restaurant_id=%s)",
+            menu.restaurant_id
         )
+
         raise RestaurantNotFoundError()
     
     if (
@@ -178,8 +194,10 @@ async def update_menu_item(
     ):
 
         logger.warning(
-            "Menu item update denied because the restaurant belongs to another owner"
+            "Menu item update denied: user ID %s is not the restaurant owner",
+            current_user.id
         )
+
         raise PermissionDeniedError()
     
 
@@ -195,20 +213,31 @@ async def update_menu_item(
 
         await db.refresh(menu)
 
+        logger.info(
+            "Menu item updated successfully (menu_id=%s)",
+            menu.id
+        )
+
         return menu
     
     except IntegrityError:
 
         await db.rollback()
 
-        logger.warning("Database integrity error while updating menu item")
+        logger.exception(
+            "Database integrity error while updating menu item"
+        )
+
         raise MenuAlreadyExistsError()
     
     except Exception:
 
         await db.rollback()
 
-        logger.exception("Unexpected error while updating menu item")
+        logger.exception(
+            "Unexpected error while updating menu item"
+        )
+
         raise DatabaseError()
     
 async def delete_menu_item(
@@ -251,6 +280,10 @@ async def delete_menu_item(
 
         await db.commit()
 
+        logger.info(
+            "Menu item deleted successfully (menu_id=%s)",
+            menu.id
+        )
         return menu
     
     except Exception:
@@ -281,8 +314,10 @@ async def change_menu_status(
     if not restaurant:
 
         logger.warning(
-            "Menu status update failed because the restaurant was not found"
+            "Menu status update failed: restaurant not found (restaurant_id=%s)",
+            menu.restaurant_id
         )
+
         raise RestaurantNotFoundError()
     
     if (
@@ -291,8 +326,10 @@ async def change_menu_status(
         restaurant.owner_id != current_user.id
     ):
         logger.warning(
-            "Menu status update denied because the restaurant belongs to another owner"
+            "Menu status update denied: user ID %s is not the restaurant owner",
+            current_user.id
         )
+
         raise PermissionDeniedError()
     
 
@@ -304,6 +341,12 @@ async def change_menu_status(
 
         await db.refresh(menu)
 
+        logger.info(
+            "Menu status updated successfully (menu_id=%s, status=%s)",
+            menu.id,
+            status
+        )
+        
         return menu
     
     except Exception:

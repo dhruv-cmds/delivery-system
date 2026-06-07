@@ -63,6 +63,12 @@ async def create_restaurant(
 
         await db.refresh(new_restaurant)
 
+        logger.info(
+            "Restaurant created successfully (restaurant_id=%s, owner_id=%s)",
+            new_restaurant.id,
+            current_user.id
+        )
+
         return new_restaurant
 
     except IntegrityError:
@@ -96,7 +102,8 @@ async def get_restaurant_by_id(
     if not restaurant:
 
         logger.warning(
-            "Restaurant lookup failed because the restaurant was not found"
+            "Restaurant not found (restaurant_id=%s)",
+            restaurant_id
         )
         raise RestaurantNotFoundError()
 
@@ -121,7 +128,8 @@ async def update_restaurant(
     ):
         
         logger.warning(
-            "Restaurant update denied because the user does not own the restaurant"
+            "Restaurant update denied: user ID %s is not the owner",
+            current_user.id
         )
         raise PermissionDeniedError()
 
@@ -140,6 +148,11 @@ async def update_restaurant(
         )
 
         await db.refresh(restaurant)
+
+        logger.info(
+            "Restaurant updated successfully (restaurant_id=%s)",
+            restaurant.id
+        )
 
         return restaurant
 
@@ -175,7 +188,8 @@ async def update_restaurant_status(
     ):
         
         logger.warning(
-            "Another restaurant owner can't chagne the restaurant status"
+            "Restaurant status update denied: user ID %s is not the owner",
+            current_user.id
         )
         raise PermissionDeniedError()
     
@@ -183,7 +197,9 @@ async def update_restaurant_status(
     if restaurant.status == status:
 
         logger.warning(
-            "Restaurant already has the requested status"
+            "Restaurant already has status '%s' (restaurant_id=%s)",
+            status,
+            restaurant_id
         )
 
         raise RestaurantStatusAlreadySetError()
@@ -206,6 +222,12 @@ async def update_restaurant_status(
             )
 
         await db.refresh(restaurant)
+
+        logger.info(
+            "Restaurant status updated successfully (restaurant_id=%s, status=%s)",
+            restaurant.id,
+            status
+        )
 
         return restaurant
 
@@ -238,7 +260,8 @@ async def delete_restaurant_by_id(
     ):
         
         logger.warning(
-            "Restaurant deletion denied because the user does not own the restaurant"
+            "Restaurant deletion denied: user ID %s is not the owner",
+            current_user.id
         )
         raise PermissionDeniedError()
 
@@ -257,6 +280,11 @@ async def delete_restaurant_by_id(
             notification_type=NotificationType.SYSTEM
         )
 
+        logger.info(
+            "Restaurant deleted successfully (restaurant_id=%s)",
+            restaurant_id
+        )
+
         return deleted_restaurant
 
     except Exception:
@@ -265,3 +293,4 @@ async def delete_restaurant_by_id(
 
         logger.exception("Unexpected error while deleting restaurant")
         raise DatabaseError()
+    

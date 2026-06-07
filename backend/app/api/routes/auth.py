@@ -6,7 +6,6 @@ from app.services import auth_service
 from app.api.dbcon import get_db
 
 from app.schemas import (
-
     LoginRequest,
     UserCreate,
     UserResponse,
@@ -19,11 +18,11 @@ router = APIRouter(tags=["AUTHENTICATION"])
 @router.post(
     "/auth/signup",
     response_model=UserResponse,
-    summary="Create a user account",
+    summary="Register a new user",
     description=(
-        "Register a new user account. The password is hashed before storage, "
-        "and the username must be unique."
-    )
+        "Create a new user account with a unique username. "
+        "Passwords are securely hashed before storage."
+    ),
 )
 @limiter.limit("3/second")
 async def sign_up(
@@ -31,21 +30,20 @@ async def sign_up(
     user: UserCreate,
     db: AsyncSession = Depends(get_db),
 ):
-
     return await auth_service.sign_up(
         db,
-        user
+        user,
     )
 
 
 @router.post(
     "/auth/login",
     response_model=TokenResponse,
-    summary="Log in and get an access token",
+    summary="Authenticate user",
     description=(
-        "Authenticate with an email address and password. Returns a JWT bearer "
-        "token that can be used in the Authorization header for protected endpoints."
-    )
+        "Verify user credentials and return a JWT access token "
+        "for authenticated requests."
+    ),
 )
 @limiter.limit("5/minute")
 async def login(
@@ -53,7 +51,6 @@ async def login(
     credentials: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
-
     return await auth_service.login(
         db,
         credentials.email,

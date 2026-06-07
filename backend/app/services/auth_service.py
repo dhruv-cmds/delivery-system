@@ -21,37 +21,45 @@ async def sign_up(db, user: UserCreate):
     return await create_user(db, user)
     
 async def login(
-        db, 
-        email: str, 
+        db,
+        email: str,
         password: str,
     ):
 
-    
     user = await get_user_by_email(
-        db, 
+        db,
         email,
     )
 
     if not user:
-        
-        logger.warning("Login failed because the email address was not found")
+
+        logger.warning(
+            "Login failed: user not found for email '%s'",
+            email
+        )
         raise InvalidCredentialsError()
-    
+
     if not verify_password(password, user.hashed_password):
 
-        logger.warning("Login failed because the password was incorrect")
+        logger.warning(
+            "Login failed: invalid password for user ID %s",
+            user.id
+        )
         raise InvalidCredentialsError()
-    
-    token = create_access_token(
 
+    token = create_access_token(
         data={
             "sub": str(user.id),
             "role": user.role
         }
     )
 
-    return {
+    logger.info(
+        "User authenticated successfully (user_id=%s)",
+        user.id
+    )
 
+    return {
         "access_token": token,
         "token_type": "bearer"
     }

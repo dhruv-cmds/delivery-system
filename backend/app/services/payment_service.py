@@ -46,7 +46,8 @@ async def make_payment(
     if current_user.role != UserRole.CUSTOMER:
 
         logger.warning(
-            "Payment creation denied because the user is not a customer"
+            "Payment creation denied: user ID %s is not a customer",
+            current_user.id
         )
         raise PermissionDeniedError()
     
@@ -66,7 +67,8 @@ async def make_payment(
     if existing_payment and existing_payment.status == PaymentStatus.SUCCESS:
 
         logger.warning(
-            "Payment creation skipped because the order is already paid"
+            "Payment already completed for order ID %s",
+            order.id
         )
         raise PaymentAlreadyCompletedError()
 
@@ -111,6 +113,12 @@ async def make_payment(
 
         await db.refresh(payment_record)
 
+        logger.info(
+            "Payment processed successfully (payment_id=%s, order_id=%s)",
+            payment_record.id,
+            order.id
+        )
+
         return payment_record
 
     except IntegrityError:
@@ -149,9 +157,15 @@ async def get_payment_by_id(
     if not payment:
 
         logger.warning(
-            "Payment lookup failed because the payment was not found"
+            "Payment not found (payment_id=%s)",
+            payment_id
         )
         raise PaymentNotFoundError()
+
+    logger.info(
+        "Payment retrieved successfully (payment_id=%s)",
+        payment.id
+    )
 
     return payment
 
@@ -178,9 +192,15 @@ async def get_payment_by_order_id(
     if not payment:
 
         logger.warning(
-            "Payment lookup failed because no payment exists for the order"
+            "Payment not found for order ID %s",
+            order_id
         )
         raise PaymentNotFoundError()
+
+    logger.info(
+        "Payment retrieved successfully for order ID %s",
+        order_id
+    )
 
     return payment
 
@@ -195,7 +215,8 @@ async def update_payment_status(
     if current_user.role != UserRole.ADMIN:
 
         logger.warning(
-            "Payment status update denied because the user is not an admin"
+            "Payment status update denied: user ID %s is not an administrator",
+            current_user.id
         )
         raise PermissionDeniedError()
 
@@ -211,7 +232,8 @@ async def update_payment_status(
     if not payment:
 
         logger.warning(
-            "Payment status update failed because the payment was not found"
+            "Payment status update failed: payment not found (payment_id=%s)",
+            payment_id
         )
         raise PaymentNotFoundError()
 
@@ -221,7 +243,8 @@ async def update_payment_status(
     ):
 
         logger.warning(
-            "Payment status update skipped because the payment is already successful"
+            "Payment status update skipped: payment already completed (payment_id=%s)",
+            payment_id
         )
         raise PaymentAlreadyCompletedError()
 
@@ -243,6 +266,12 @@ async def update_payment_status(
         await db.commit()
 
         await db.refresh(payment)
+
+        logger.info(
+            "Payment status updated successfully (payment_id=%s, status=%s)",
+            payment_id,
+            status
+        )
 
         return payment
 

@@ -40,7 +40,8 @@ async def create_delivery_partner(
     if existing.scalar_one_or_none():
 
         logger.warning(
-            "Delivery partner creation skipped because the profile already exists"
+            "Delivery partner creation failed: profile already exists for user ID %s",
+            current_user.id
         )
 
         raise DeliveryPartnerAlreadyExistsError()
@@ -48,7 +49,7 @@ async def create_delivery_partner(
     if current_user.role == UserRole.RESTAURANT_OWNER:
 
         logger.warning(
-            "Restaurant owner can't create a delivery partner"
+            "Delivery partner creation denied: restaurant owners are not permitted"
         )
 
         raise PermissionDeniedError()
@@ -70,6 +71,11 @@ async def create_delivery_partner(
         await db.commit()
 
         await db.refresh(partner)
+
+        logger.info(
+            "Delivery partner created successfully (user_id=%s)",
+            current_user.id
+        )
 
         return partner
 
@@ -111,9 +117,9 @@ async def get_delivery_partner_by_user_id(
     if not partner:
 
         logger.warning(
-            "Delivery partner lookup failed because the profile was not found"
+            "Delivery partner not found for user ID %s",
+            user_id
         )
-
         raise DeliveryPartnerNotFoundError()
 
     return partner
@@ -136,7 +142,8 @@ async def get_delivery_partner_by_id(
     if not partner:
 
         logger.warning(
-            "Delivery partner lookup failed because the profile was not found"
+            "Delivery partner lookup failed because the profile was not found %s",
+            partner_id
         )
 
         raise DeliveryPartnerNotFoundError()
@@ -177,7 +184,8 @@ async def update_delivery_partner(
     ):
 
         logger.warning(
-            "Delivery partner update denied because the user does not own the profile"
+            "Delivery partner update denied: user ID %s is not authorized",
+            current_user.id
         )
 
         raise PermissionDeniedError()
@@ -189,6 +197,11 @@ async def update_delivery_partner(
         await db.commit()
 
         await db.refresh(partner)
+
+        logger.info(
+            "Delivery partner update successfully (partner_id=%s)",
+            partner_id
+        )
 
         return partner
 
@@ -222,7 +235,8 @@ async def update_location(
     ):
 
         logger.warning(
-            "Location update denied because the user does not own the delivery partner profile"
+            "Location update denied: user ID %s authorized",
+            current_user.id
         )
 
         raise PermissionDeniedError()
@@ -235,6 +249,11 @@ async def update_location(
         await db.commit()
 
         await db.refresh(partner)
+
+        logger.info(
+            "Delivery partner location updated successfully (partner_id=%s)",
+            partner_id
+        )
 
         return partner
 
@@ -266,7 +285,8 @@ async def delete_delivery_partner(
     ):
 
         logger.warning(
-            "Delivery partner deletion denied because the user does not own the profile"
+            "Delivery partner deletion denied: user ID %s is not authorized",
+            current_user.id
         )
 
         raise PermissionDeniedError()
@@ -279,6 +299,11 @@ async def delete_delivery_partner(
 
         await db.commit()
 
+        logger.info(
+            "Delivery partner deleted successfully (partner_id=%s)",
+            partner_id
+        )
+        
         return deleted_partner
 
     except Exception:

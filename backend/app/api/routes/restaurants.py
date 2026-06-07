@@ -30,14 +30,14 @@ public_router = APIRouter(
 @router.post(
     "/",
     response_model=RestaurantResponse,
-    summary="Create a restaurant owner",
-    description="Restaurant owner create only admin and current user can create resaurant owner"
+    summary="Create restaurant",
+    description="Create a new restaurant."
 )
 @limiter.limit("3/second")
 async def create_restaurant(
         request: Request,
         restaurant: RestaurantCreate,
-        current_user = Depends(require_restaurant_access),
+        current_user=Depends(require_restaurant_access),
         db: AsyncSession = Depends(get_db)
     ):
 
@@ -51,8 +51,8 @@ async def create_restaurant(
 @public_router.get(
     "/{restaurant_id}",
     response_model=RestaurantResponse,
-    summary="Get a restaurant by resaurant id",
-    description="Any one can get restaurant by restaurant id"
+    summary="Get restaurant by ID",
+    description="Retrieve a restaurant by its ID."
 )
 @limiter.limit("3/second")
 async def get_restaurant_by_id(
@@ -70,15 +70,15 @@ async def get_restaurant_by_id(
 @router.put(
     "/update/{restaurant_id}",
     response_model=RestaurantResponse,
-    summary="Update restaurant by resaurant id",
-    description="Only restaurant owner and admin can change the restaurant by restaurant id"
+    summary="Update restaurant",
+    description="Update restaurant details by ID."
 )
 @limiter.limit("3/second")
 async def update_restaurant(
         request: Request,
         restaurant_id: int,
         restaurant_data: RestaurantCreate,
-        current_user = Depends(get_access_manager),
+        current_user=Depends(get_access_manager),
         db: AsyncSession = Depends(get_db)
     ):
 
@@ -93,15 +93,15 @@ async def update_restaurant(
 @router.patch(
     "/status/{restaurant_id}",
     response_model=RestaurantResponse,
-    summary="Update restaurant status by resaurant id",
-    description="Only restaurant owner and admin can change the restaurant status restaurant id"
+    summary="Update restaurant status",
+    description="Update the status of a restaurant."
 )
 @limiter.limit("3/second")
 async def update_restaurant_status(
         request: Request,
         restaurant_id: int,
         status: RestaurantStatus,
-        current_user = Depends(get_access_manager),
+        current_user=Depends(get_access_manager),
         db: AsyncSession = Depends(get_db)
     ):
 
@@ -116,14 +116,14 @@ async def update_restaurant_status(
 @router.delete(
     "/delete/{restaurant_id}",
     response_model=RestaurantResponse,
-    summary="Delete restaurant by resaurant id",
-    description="Only restaurant owner and admin can delete the restaurant restaurant id"
+    summary="Delete restaurant",
+    description="Delete a restaurant by ID."
 )
 @limiter.limit("3/second")
 async def delete_restaurant_by_id(
         request: Request,
         restaurant_id: int,
-        current_user = Depends(get_access_manager),
+        current_user=Depends(get_access_manager),
         db: AsyncSession = Depends(get_db)
     ):
 

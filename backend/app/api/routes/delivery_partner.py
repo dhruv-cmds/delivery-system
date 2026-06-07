@@ -29,8 +29,11 @@ public_router = APIRouter(
     "/",
     response_model=DeliveryPartnerResponse,
     summary="Create a delivery partner",
-    description="Create a delivery partner only authorised user and admin can access it"
-)   
+    description=(
+        "Create a new delivery partner profile. "
+        "Accessible only to authenticated users and administrators."
+    )
+)
 @limiter.limit("3/second")
 async def create_delivery_partner(
         request: Request,
@@ -48,8 +51,11 @@ async def create_delivery_partner(
 @router.get(
     "/user/{user_id}",
     response_model=DeliveryPartnerResponse,
-    summary="Get delivery partner by user id",
-    description="Only admin can access this routes"
+    summary="Get delivery partner by user ID",
+    description=(
+        "Retrieve a delivery partner profile using the associated user ID. "
+        "Accessible only to administrators."
+    )
 )
 @limiter.limit("3/second")
 async def get_delivery_partner_by_user_id(
@@ -68,8 +74,11 @@ async def get_delivery_partner_by_user_id(
 @public_router.get(
     "/id/{partner_id}",
     response_model=DeliveryPartnerResponse,
-    summary="Get delivery partner by delivery partner id",
-    description="Any buddy can access this routes"
+    summary="Get delivery partner by ID",
+    description=(
+        "Retrieve a delivery partner profile by its unique partner ID. "
+        "Accessible to all users."
+    )
 )
 @limiter.limit("3/second")
 async def get_delivery_partner_by_id(
@@ -87,8 +96,11 @@ async def get_delivery_partner_by_id(
 @router.get(
     "/all",
     response_model=list[DeliveryPartnerResponse],
-    summary="Get all the delivery partners",
-    description="Only admin can get all delivery partners"
+    summary="Get all delivery partners",
+    description=(
+        "Retrieve a list of all registered delivery partners. "
+        "Accessible only to administrators."
+    )
 )
 @limiter.limit("3/second")
 async def get_all_delivery_partners(
@@ -105,8 +117,11 @@ async def get_all_delivery_partners(
 @router.put(
     "/{partner_id}",
     response_model=DeliveryPartnerResponse,
-    summary="Update delivery partners vehical",
-    description="Only admin and delivery partner can Update vehical"
+    summary="Update delivery partner vehicle",
+    description=(
+        "Update the vehicle information and status of a delivery partner. "
+        "Accessible to the assigned delivery partner and administrators."
+    )
 )
 @limiter.limit("3/second")
 async def update_delivery_partner(
@@ -128,8 +143,11 @@ async def update_delivery_partner(
 @router.put(
     "/{partner_id}/location",
     response_model=DeliveryPartnerResponse,
-    summary="Update delivery partners location",
-    description="Only admin and delivery partner can Update location"
+    summary="Update delivery partner location",
+    description=(
+        "Update the current location coordinates of a delivery partner. "
+        "Accessible to the assigned delivery partner and administrators."
+    )
 )
 @limiter.limit("3/second")
 async def update_location(
@@ -153,8 +171,11 @@ async def update_location(
 @router.delete(
     "/{partner_id}",
     response_model=DeliveryPartnerResponse,
-    summary="Delete delivery partners",
-    description="Only admin and delivery partner can delete"
+    summary="Delete a delivery partner",
+    description=(
+        "Remove a delivery partner profile. "
+        "Accessible to the assigned delivery partner and administrators."
+    )
 )
 @limiter.limit("3/second")
 async def delete_delivery_partner(

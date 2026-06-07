@@ -69,16 +69,25 @@ async def get_menu_item_for_order(
     if not menu_item:
 
         logger.warning(
-            "Order processing failed because the menu item was not found"
+            "Menu item not found for order processing (menu_item_id=%s)",
+            menu_item_id
         )
+
         raise OrderItemNotFoundError("Menu item not found")
 
     if menu_item.status != MenuStatus.AVAILABLE:
 
         logger.warning(
-            "Order processing failed because the menu item is unavailable"
+            "Menu item unavailable for ordering (menu_item_id=%s)",
+            menu_item_id
         )
+
         raise InvalidOperationError("Menu item is not available")
+    
+    logger.info(
+        "Menu item retrieved for order processing (menu_item_id=%s)",
+        menu_item_id
+    )
 
     return menu_item
 
@@ -101,6 +110,11 @@ async def get_all_orders(
 
     result = await db.execute(statement)
 
+    logger.info(
+        "Orders retrieved successfully (user_id=%s)",
+        current_user.id
+    )
+    
     return list(result.scalars().all())
 
 
@@ -127,7 +141,18 @@ async def get_order_by_id(
 
     if not order:
 
-        logger.warning("Order lookup failed because the order was not found")
+        logger.warning(
+            "Order not found or access denied (order_id=%s, user_id=%s)",
+            order_id,
+            current_user.id
+        )
+
         raise OrderNotFoundError()
+    
+
+    logger.info(
+        "Order retrieved successfully (order_id=%s)",
+        order_id
+    )
     
     return order
