@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +15,8 @@ from app.core import (
     PermissionDeniedError
 
 )
+
+from app.core import UserRole
 
 async def create_notification (
         db: AsyncSession,
@@ -63,7 +65,7 @@ async def get_user_notifications(
 
     return result.scalars().all()
 
-async def get_notification_by_user_id(
+async def get_notification_by_id(
         db: AsyncSession,
         notification_id: int,
         current_user: User
@@ -71,20 +73,22 @@ async def get_notification_by_user_id(
 
     result = await db.execute(
         select(Notification)
-        .where(Notification.user_id == current_user.id)
+        .where(
+            Notification.id == notification_id,
+            Notification.user_id == current_user.id
+        )
     )
 
-    if not result:
+    notification = result.scalar_one_or_none()
+
+    if not notification:
 
         logger.warning(
-            "You can't access another users notfications"
+            "Notification not found or does not belong to the user"
         )
         raise PermissionDeniedError()
-    
-    return await db.execute(
-        select(Notification)
-        .where(Notification.id == notification_id)
-    )
+
+    return notification
     
 async def mark_notification_as_read(
         db: AsyncSession,
@@ -128,6 +132,39 @@ async def mark_notification_as_read(
         raise DatabaseError()
     
 
+async def mark_all_notifications_as_read(
+        db: AsyncSession,
+        current_user: User
+    ):
+
+    try:
+
+        await db.execute(
+            update(Notification)
+            .where(
+                Notification.user_id == current_user.id,
+                Notification.status == NotificationStatus.UNREAD
+            )
+            .values(
+                status=NotificationStatus.READ
+            )
+        )
+
+        await db.commit()
+
+        return {
+            "message": "All notifications marked as read"
+        }
+
+    except Exception:
+
+        await db.rollback()
+
+        logger.exception(
+            "Unexpected error while marking all notifications as read"
+        )
+        raise DatabaseError()
+
 
 async def delete_notification(
         db: AsyncSession,
@@ -168,3 +205,47 @@ async def delete_notification(
 
         logger.exception("Unexpected error while deleting notification")
         raise DatabaseError()  
+    
+
+async def get_all_notifications(
+        db: AsyncSession,
+        current_user: User
+    ):
+
+    if current_user.role != UserRole.ADMIN:
+
+        logger.warning(
+            "Notfications access denied because the user is not admin"
+        )
+        raise PermissionDeniedError()
+    
+    result = await db.execute (
+        select(Notification)
+        .order_by(Notification.created_at.desc())
+    )
+
+    return result.scalars().all()
+
+
+async def get_notifications_by_user_id(
+        db: AsyncSession,
+        user_id: int,
+        current_user: User
+    ):
+
+    if current_user.role != UserRole.ADMIN:
+
+        logger.warning(
+        "Notification access denied beacause the user is not admin")
+        raise PermissionDeniedError()
+    
+
+    result = await db.execute(
+        select(Notification)
+        .where(
+            Notification.user_id == user_id
+        )
+        .order_by(Notification.created_at.desc())
+    )
+
+    return result.scalars().all()

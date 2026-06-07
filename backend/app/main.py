@@ -53,6 +53,7 @@ app.include_router(menu.router, prefix="/api")
 app.include_router(menu.public_router, prefix="/api")
 
 app.include_router(notifications.routes, prefix="/api")
+app.include_router(notifications.admin, prefix="/api")
 
 app.include_router(orders.router, prefix="/api")
 
