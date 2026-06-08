@@ -14,7 +14,7 @@ from app.api.deps import (
 
 from app.schemas import UserResponse
 
-router = APIRouter(tags=["Users"])
+router = APIRouter(tags=["USER"])
 
 @router.get(
     "/users/{user_id}",

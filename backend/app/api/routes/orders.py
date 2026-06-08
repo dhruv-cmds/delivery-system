@@ -21,7 +21,7 @@ from app.api import (
 
 router = APIRouter(
     prefix="/order",
-    tags=["ORDERS"]
+    tags=["ORDER"]
 )
 
 @router.post(

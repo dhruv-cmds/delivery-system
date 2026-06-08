@@ -40,7 +40,80 @@ async def lifespan(app: FastAPI):
 
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Food Delivery Management API",
+    description=('''
+        A complete food delivery backend system with authentication, restaurant management,
+        menu management, order processing, payments, delivery tracking, notifications,
+        and role-based access control.
+
+        **Roles:** Admin, Customer, Restaurant Owner, Delivery Partner.
+        '''
+    ),
+    
+    version="1.0.0",
+
+    # docs_url=None,
+    # redoc_url=None,
+    # openapi_url=None,
+
+    lifespan=lifespan,
+    openapi_tags=[
+        {
+            "name": "AUTHENTICATION",
+            "description": "User registration, login, and JWT authentication."
+        },
+        {
+            "name": "USER",
+            "description": "User profile lookup and user management endpoints."
+        },
+        {
+            "name": "RESTAURANT",
+            "description": "Restaurant creation, updates, status management, and deletion."
+        },
+        {
+            "name": "PUBLIC RESTAURANT",
+            "description": "Public restaurant information and restaurant discovery."
+        },
+        {
+            "name": "MENU",
+            "description": "Menu item creation, updates, availability management, and deletion."
+        },
+        {
+            "name": "PUBLIC MENU",
+            "description": "Public menu browsing and restaurant menu retrieval."
+        },
+        {
+            "name": "ORDER",
+            "description": "Order creation, status updates, retrieval, and cancellation."
+        },
+        {
+            "name": "PAYMENT",
+            "description": "Payment processing, payment lookup, and payment status management."
+        },
+        {
+            "name": "DELIVERY PARTNER",
+            "description": "Delivery partner registration, profile management, and location updates."
+        },
+        {
+            "name": "DELIVERY PARTNER PUBLIC",
+            "description": "Public delivery partner information endpoints."
+        },
+        {
+            "name": "NOTIFICATION",
+            "description": "User notifications, read status management, and notification deletion."
+        },
+        {
+            "name": "ADMIN NOTIFICATIONS",
+            "description": "Administrative notification monitoring and user notification access."
+        },
+        {
+            "name": "HEALTH",
+            "description": "Application and database health monitoring endpoints."
+        }
+    ]
+
+)
 
 app.include_router(auth.router, prefix="/api")
 
