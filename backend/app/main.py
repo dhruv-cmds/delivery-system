@@ -92,6 +92,10 @@ app = FastAPI(
             "description": "Payment processing, payment lookup, and payment status management."
         },
         {
+            "name": "MAKE PAYMENT",
+            "description": "Payment creation."
+        },
+        {
             "name": "DELIVERY PARTNER",
             "description": "Delivery partner registration, profile management, and location updates."
         },
@@ -129,6 +133,10 @@ app.include_router(notifications.routes, prefix="/api")
 app.include_router(notifications.admin, prefix="/api")
 
 app.include_router(orders.router, prefix="/api")
+
+app.include_router(payment.make_payment_router, prefix="/api")
+app.include_router(payment.router, prefix="/api")
+
 
 app.include_router(restaurants.public_router, prefix="/api")
 app.include_router(restaurants.router, prefix="/api")

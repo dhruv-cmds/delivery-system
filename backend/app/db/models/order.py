@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from order_tracking import OrderTracking
     from restaurant import Restaurant
     from user import User
+    from payment import Payment
 
 
 class Order(Base):
@@ -112,4 +113,11 @@ class Order(Base):
     customer: Mapped["User"] = relationship(
         foreign_keys=[customer_id],
         back_populates="orders"
+    )
+
+    payment: Mapped["Payment"] = relationship(
+        "Payment",
+        back_populates="order",
+        uselist=False,
+        cascade="all, delete-orphan"
     )

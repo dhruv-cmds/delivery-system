@@ -33,6 +33,7 @@ ONLINE_PAYMENT_METHODS = {
     "UPI",
     "CARD",
     "ONLINE",
+    "COD",
 }
 
 
@@ -70,6 +71,7 @@ async def make_payment(
             "Payment already completed for order ID %s",
             order.id
         )
+
         raise PaymentAlreadyCompletedError()
 
     status = PaymentStatus.PENDING
@@ -135,7 +137,7 @@ async def make_payment(
         logger.exception("Unexpected error while creating payment")
         raise DatabaseError()
 
-
+# Admin only
 async def get_payment_by_id(
         db: AsyncSession,
         payment_id: int,
@@ -205,6 +207,43 @@ async def get_payment_by_order_id(
     return payment
 
 
+async def get_all_payments(
+        db: AsyncSession,
+        current_user: User,
+    ):
+
+    statement = (
+        select(Payment)
+        .join(Order)
+        .order_by(Payment.created_at.desc())
+    )
+
+    statement = apply_order_visibility(
+        statement,
+        current_user
+    )
+
+    result = await db.execute(statement)
+
+
+    payments = result.scalars().all()
+
+    if not payments:
+
+        logger.info(
+            "Retrieved %s payments for user ID %s",
+            len(payments),
+            current_user.id
+        )
+    
+    logger.info(
+        "All payment seen successfully for user ID %s",
+        current_user.id
+    )
+
+    return payments
+
+
 async def update_payment_status(
         db: AsyncSession,
         payment_id: int,
@@ -218,6 +257,7 @@ async def update_payment_status(
             "Payment status update denied: user ID %s is not an administrator",
             current_user.id
         )
+        
         raise PermissionDeniedError()
 
     result = await db.execute(
@@ -235,6 +275,7 @@ async def update_payment_status(
             "Payment status update failed: payment not found (payment_id=%s)",
             payment_id
         )
+
         raise PaymentNotFoundError()
 
     if (
@@ -246,6 +287,7 @@ async def update_payment_status(
             "Payment status update skipped: payment already completed (payment_id=%s)",
             payment_id
         )
+
         raise PaymentAlreadyCompletedError()
 
     payment.status = status

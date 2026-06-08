@@ -9,7 +9,7 @@ from app.core import OrderStatus, PaymentStatus
 
 
 class OrderCreate(OrderItemCreate):
-
+    
     delivery_address: str = Field(
         ...,
         examples=["101 Food Street, Alkapuri, Vadodara"]

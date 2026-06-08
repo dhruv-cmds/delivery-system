@@ -14,15 +14,18 @@ from app.api.deps import (
 
 from app.schemas import UserResponse
 
-router = APIRouter(tags=["USER"])
+router = APIRouter(
+    prefix="/user",
+    tags=["USER"]
+)
 
 @router.get(
-    "/users/{user_id}",
+    "/{user_id}",
     response_model=UserResponse,
     summary="Get user by ID",
     description="Retrieve a user by their ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_user_by_id(
         request: Request,
         user_id: int,
@@ -38,12 +41,12 @@ async def get_user_by_id(
 
 
 @router.get(
-    "/users",
+    "/",
     response_model=list[UserResponse],
     summary="Get all users",
     description="Retrieve all registered users."
 )
-@limiter.limit("3/second")
+@limiter.limit("30/minute")
 async def get_all_users(
         request: Request,
         db: AsyncSession = Depends(get_db),
@@ -59,7 +62,7 @@ async def get_all_users(
     summary="Get user by email",
     description="Retrieve a user by their email address."
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_user_by_email(
         request: Request,
         user_email: str,
@@ -80,7 +83,7 @@ async def get_user_by_email(
     summary="Get user by username",
     description="Retrieve a user by their username."
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_user_by_username(
         request: Request,
         username: str,

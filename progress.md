@@ -1,168 +1,531 @@
 # Project Progress
 
-Last updated: 2026-06-03
+Last Updated: 2026-06-08
 
-## Summary
+## Project Overview
 
-The Delivery System project currently has a backend-first foundation. The database model layer, Pydantic schemas, core security helpers, custom exceptions, dependency wiring, API route handlers for auth/users/health/menu, and several business services have been added. The project also has Docker Compose support for the API and MySQL database.
+Food Delivery Management System is a FastAPI-based backend application designed around a service-layer architecture with JWT authentication, role-based access control, asynchronous SQLAlchemy ORM, MySQL, Docker, and OpenAPI documentation.
 
-The main remaining work is to connect the remaining service modules through FastAPI route handlers, add database migrations or a safer initialization flow, write tests, and build the frontend/realtime/load-testing layers.
+The project now includes complete CRUD and workflow support for users, restaurants, menus, orders, payments, delivery partners, notifications, and health monitoring.
 
-## Completed So Far
+Current development is focused on completing delivery tracking, WebSocket integration, automated testing, load testing, frontend development, and deployment preparation.
 
-### Project Setup
+---
 
-- Added backend, frontend, Docker, nginx, scripts, and k6 project folders.
-- Added Docker Compose configuration for:
-  - `delivery-api`
-  - `delivery-db`
-- Added a backend Dockerfile using Python 3.11 and Uvicorn.
-- Added MIT license.
+# Completed Features
 
-### Backend Core
+## Project Infrastructure
 
-- Added environment configuration through `backend/.env`.
-- Added async MySQL database session setup using SQLAlchemy and aiomysql.
-- Added password hashing and verification helpers.
-- Added JWT access token creation.
-- Added shared constants for user roles, order status, payment status, and limits.
-- Added application logger.
-- Added structured custom exceptions for users, auth, restaurants, menus, orders, payments, delivery partners, permissions, and database errors.
-- Added FastAPI app entrypoint that registers auth, user, health, and menu routers.
-- Added API dependency helpers for database sessions, JWT-authenticated users, admin access, and menu manager access.
-- Added `RESTAURANT_OWNER` user role for restaurant/menu ownership flows.
+* Backend project structure established.
+* Frontend project scaffold created.
+* Docker and Docker Compose configured.
+* MySQL containerized development environment.
+* Nginx placeholder structure added.
+* k6 load testing structure added.
+* MIT License added.
+* OpenAPI / Swagger documentation configured.
 
-### Database Models
+---
 
-Implemented SQLAlchemy models for:
+## Core Backend
 
-- `User`
-- `Restaurant`
-- `Menu`
-- `Order`
-- `OrderItem`
-- `Payment`
-- `DeliveryPartner`
-- `OrderTracking`
-- `Notification`
+### Configuration
 
-Relationships have been added across the main delivery workflow:
+* Environment-based configuration.
+* Docker and local development support.
+* Database host auto-selection.
+* Application-wide constants and limits.
+* Centralized logging configuration.
 
-- Users own restaurants.
-- Users place orders.
-- Restaurants have menu items and orders.
-- Orders have order items and tracking updates.
-- Delivery partners can be assigned to orders.
-- Users can receive notifications.
+### Security
 
-### Schemas
+* JWT access token generation.
+* Password hashing using bcrypt.
+* Password verification.
+* Role-based authorization helpers.
+* Current user dependency injection.
+* Admin-only access guards.
+* Restaurant-owner access guards.
+* Delivery-partner access guards.
 
-Added Pydantic schemas for:
+### Exception Handling
 
-- Auth login and token responses.
-- Shared name, phone, email, and password constraints.
-- Users.
-- Restaurants.
-- Menu items.
-- Order items.
-- Payments.
-- Delivery partners.
-- Notifications.
-- Websocket subscribe, location update, and error payloads.
+Custom exception hierarchy implemented for:
 
-### Services
+* Authentication
+* Users
+* Restaurants
+* Menus
+* Orders
+* Payments
+* Delivery Partners
+* Notifications
+* Permissions
+* Database failures
 
-Implemented or partially implemented service-layer logic for:
+---
 
-- User creation and lookup.
-- Signup and login.
-- Restaurant creation, lookup, update, and deletion.
-- Menu item creation, lookup, update, deletion, and status changes.
-- Notification creation, listing, mark-as-read, and deletion.
-- Order menu item validation and customer-scoped order lookup.
-- Single-item order creation, order item updates, status updates, and order deletion with checks for delivered, cancelled, and other final states.
-- Order creation guards for maximum item quantity and maximum order value.
-- Payment creation for orders, payment lookup by payment id and order id, and admin payment status updates that sync the related order payment status.
+## Database Layer
 
-### API Routes
+Implemented SQLAlchemy Async ORM models for:
 
-Implemented API route handlers for:
+* User
+* Restaurant
+* Menu
+* Order
+* OrderItem
+* Payment
+* DeliveryPartner
+* OrderTracking
+* Notification
 
-- Auth signup and login.
-- User lookup by id, email, and username.
-- Admin-only user listing.
-- Health check with database connectivity.
-- Menu item creation, lookup by menu id, listing by restaurant id, update, delete, and status changes.
+### Relationships Implemented
 
-Menu management is restricted to admins and restaurant owners. Customer users are promoted to restaurant owners when they create a restaurant.
+* Users own restaurants.
+* Users place orders.
+* Restaurants manage menus.
+* Restaurants receive orders.
+* Orders contain order items.
+* Orders have payments.
+* Orders can be assigned to delivery partners.
+* Orders contain tracking updates.
+* Users receive notifications.
 
-## Current Placeholders
+---
 
-These files or areas exist but still need implementation:
+## Pydantic Schemas
 
-- `backend/app/lifespan.py`
-- `backend/app/api/routes/restaurants.py`
-- `backend/app/api/routes/orders.py`
-- `backend/app/api/routes/payment.py`
-- `backend/app/api/routes/tracking.py`
-- `backend/app/api/routes/websocket.py`
-- `backend/app/repositories/*.py`
-- `backend/app/services/tracking_service.py`
-- `backend/app/services/websocket_service.py`
-- `backend/app/services/redis_service.py`
-- `backend/app/services/analytics_service.py`
-- `backend/app/tasks/*.py`
-- `backend/app/websocket/handlers/*.py`
-- `backend/app/websocket/events/*.py`
-- `backend/app/tests/*.py`
-- `frontend/src/main.jsx`
-- `k6/*.js`
-- `nginx/nginx.conf`
-- `scripts/*.py`
-- `scripts/wait_for_db.sh`
+Implemented schemas for:
 
-## Known Issues To Fix
+### Authentication
 
-- Restaurant, order, payment, tracking, and websocket API route modules still need to be completed and registered.
-- Menu routes currently use overlapping `"/id/{...}"` paths for menu id and restaurant id lookups, so the restaurant-scoped listing path should be renamed.
-- Order service currently handles a single menu item per order. Multi-item order creation and richer order lifecycle handling still need to be designed.
-- Payment service is implemented, but it still needs API route integration and tests.
-- `backend/app/main.py` currently drops and recreates all tables during startup, which should be replaced before any persistent environment is used.
-- Tests are not implemented yet.
+* Login requests
+* Token responses
 
-## Recommended Next Milestones
+### User Management
 
-1. Replace startup table recreation with migrations or a safer initialization flow.
-2. Fix the overlapping menu lookup route paths.
-3. Add route handlers for restaurants, notifications, orders, and payments.
-4. Add minimal service and API tests for auth, user, restaurant, menu, notifications, and orders.
-5. Expand order creation to support multi-item carts if that is part of the intended API.
-6. Add payment route handlers and service tests.
-7. Implement delivery tracking and live location updates.
-8. Add websocket connection management and event broadcasting.
-9. Add seed data and admin creation scripts.
-10. Add k6 scripts after endpoints stabilize.
-11. Start frontend implementation after backend API contracts are stable.
+* User creation
+* User responses
 
-## Recent Git Progress
+### Restaurant Management
 
-Recent commits show progress in this order:
+* Restaurant creation
+* Restaurant responses
 
-- Added menu routes and restaurant owner permissions.
-- Added auth and user API routes.
-- Completed payment service functions for create, lookup, and status updates.
-- Added order creation limits for quantity and total transfer amount.
-- Split order lookup helpers into an order query service.
-- Added order service flow for create, update, status changes, and deletion.
-- Added backend environment example.
-- Updated project docs and backend setup notes.
-- Added restaurant service and improved menu service.
-- Fixed schema exports and added notification service.
-- Added notification schema and cleaned schema/model spacing.
-- Added menu service and improved auth/user type hints and username normalization.
-- Added custom error exceptions.
-- Added auth service with signup and login logic.
-- Added user service and improved custom errors.
-- Added websocket schema.
-- Refactored delivery partner schemas.
-- Added payment schema and increased payment method length.
+### Menu Management
+
+* Menu creation
+* Menu responses
+
+### Order Management
+
+* Order creation
+* Order item creation
+* Order responses
+
+### Payment Management
+
+* Payment creation
+* Payment responses
+
+### Delivery Partner Management
+
+* Partner creation
+* Partner responses
+
+### Notifications
+
+* Notification responses
+
+### WebSocket
+
+* Subscribe messages
+* Location updates
+* Error payloads
+
+---
+
+# Service Layer
+
+## Authentication Service
+
+Implemented:
+
+* Signup
+* Login
+* JWT generation
+* Credential validation
+
+---
+
+## User Service
+
+Implemented:
+
+* Create user
+* Get user by ID
+* Get user by email
+* Get user by username
+* Get all users
+
+---
+
+## Restaurant Service
+
+Implemented:
+
+* Create restaurant
+* Get restaurant by ID
+* Update restaurant
+* Update restaurant status
+* Delete restaurant
+
+Additional functionality:
+
+* Automatic promotion from CUSTOMER to RESTAURANT_OWNER during restaurant creation.
+
+---
+
+## Menu Service
+
+Implemented:
+
+* Create menu item
+* Get menu item
+* Get restaurant menu
+* Update menu item
+* Change menu status
+* Delete menu item
+
+Authorization:
+
+* Admin
+* Restaurant owner
+
+---
+
+## Order Service
+
+Implemented:
+
+* Create order
+* Get order by ID
+* Get all visible orders
+* Update order status
+* Delete order
+
+Business rules implemented:
+
+* Order ownership validation
+* Role-based order visibility
+* Quantity validation
+* Maximum order quantity enforcement
+* Maximum order value enforcement
+* Final-state protection
+* Customer-scoped order access
+
+Current limitation:
+
+* One menu item per order
+
+---
+
+## Payment Service
+
+Implemented:
+
+* Create payment
+* Get payment by payment ID
+* Get payment by order ID
+* Get all payments
+* Update payment status
+
+Business rules implemented:
+
+* One payment per order
+* Duplicate payment protection
+* Automatic transaction reference generation
+* Payment status synchronization with orders
+* Admin-only payment status updates
+
+---
+
+## Delivery Partner Service
+
+Implemented:
+
+* Create delivery partner
+* Get delivery partner by ID
+* Get delivery partner by user ID
+* Get all delivery partners
+* Update delivery partner
+* Update delivery location
+* Delete delivery partner
+
+---
+
+## Notification Service
+
+Implemented:
+
+* Create notification
+* Get notification
+* Get all notifications
+* Mark notification as read
+* Mark all notifications as read
+* Delete notification
+
+Admin functionality:
+
+* Get all notifications
+* Get notifications by user
+
+---
+
+# API Routes
+
+## Authentication
+
+```text
+POST /api/auth/signup
+POST /api/auth/login
+```
+
+---
+
+## Users
+
+```text
+GET /api/user
+GET /api/user/{user_id}
+GET /api/user/email/{user_email}
+GET /api/user/username/{username}
+```
+
+---
+
+## Restaurants
+
+```text
+POST   /api/restaurant
+
+GET    /api/restaurant/{restaurant_id}
+
+PUT    /api/restaurant/{restaurant_id}
+PATCH  /api/restaurant/{restaurant_id}/status
+
+DELETE /api/restaurant/{restaurant_id}
+```
+
+---
+
+## Menus
+
+```text
+POST   /api/menus
+
+GET    /api/menus/{menu_id}
+GET    /api/restaurants/{restaurant_id}/menus
+
+PUT    /api/menus/{menu_id}
+PATCH  /api/menus/{menu_id}/status
+
+DELETE /api/menus/{menu_id}
+```
+
+---
+
+## Orders
+
+```text
+POST   /api/order
+
+GET    /api/order/{order_id}
+GET    /api/order/all
+
+PATCH  /api/order/{order_id}/status
+
+DELETE /api/order/{order_id}
+```
+
+---
+
+## Payments
+
+```text
+POST   /api/order/{order_id}/payment
+
+GET    /api/order/{order_id}/payment
+
+GET    /api/payment/all
+GET    /api/payment/{payment_id}
+
+PATCH  /api/payment/{payment_id}/status
+```
+
+---
+
+## Delivery Partners
+
+```text
+POST   /api/delivery_partner
+
+GET    /api/delivery_partner/{partner_id}
+GET    /api/delivery_partner/user/{user_id}
+GET    /api/delivery_partner/all
+
+PUT    /api/delivery_partner/{partner_id}
+PUT    /api/delivery_partner/{partner_id}/location
+
+DELETE /api/delivery_partner/{partner_id}
+```
+
+---
+
+## Notifications
+
+```text
+GET    /api/notification
+GET    /api/notification/{notification_id}
+
+PATCH  /api/notification/{notification_id}/read
+PATCH  /api/notification/read-all
+
+DELETE /api/notification/{notification_id}
+```
+
+---
+
+## Admin Notifications
+
+```text
+GET /api/admin/notification/all
+GET /api/admin/notification/user/{user_id}
+```
+
+---
+
+## Health
+
+```text
+GET /api/health
+```
+
+---
+
+# Remaining Work
+
+## Testing
+
+Planned:
+
+* pytest unit tests
+* pytest integration tests
+* API endpoint testing
+* Service-layer testing
+* Database testing
+
+---
+
+## Performance Testing
+
+Planned:
+
+* k6 load testing
+* Stress testing
+* Throughput benchmarking
+
+---
+
+## Delivery Tracking
+
+Pending:
+
+* Tracking service implementation
+* Driver assignment workflow
+* Delivery status progression
+* Tracking history endpoints
+
+---
+
+## WebSocket Support
+
+Pending:
+
+* Connection manager
+* Event broadcasting
+* Real-time order updates
+* Live delivery tracking
+* Customer notifications
+
+---
+
+## Frontend
+
+Pending:
+
+* React application
+* Authentication UI
+* Restaurant dashboard
+* Customer ordering flow
+* Delivery partner dashboard
+* Notification system
+
+---
+
+## Deployment
+
+Planned:
+
+* Docker production setup
+* Nginx reverse proxy
+* CI/CD pipeline
+* Cloud deployment
+* Environment separation
+
+---
+
+# Known Limitations
+
+* Order creation currently supports a single menu item per order.
+* Database tables are currently initialized during startup and should be replaced with Alembic migrations before production.
+* Tracking workflows are not yet implemented.
+* WebSocket functionality is not yet implemented.
+* Automated tests have not yet been added.
+
+---
+
+# Next Milestones
+
+1. Complete delivery tracking APIs and services.
+2. Implement WebSocket infrastructure.
+3. Add pytest test suite.
+4. Add k6 performance testing.
+5. Replace startup table creation with Alembic migrations.
+6. Complete frontend integration.
+7. Configure CI/CD pipelines.
+8. Deploy staging environment.
+9. Deploy production environment.
+
+---
+
+# Recent Major Progress
+
+### Completed Since Initial Setup
+
+* Restaurant management module
+* Menu management module
+* Order management module
+* Payment management module
+* Delivery partner management module
+* Notification management module
+* Role-based access control improvements
+* Payment-order synchronization
+* Order visibility filtering
+* Delivery partner location updates
+* OpenAPI documentation cleanup
+* Endpoint standardization
+* Dockerized development workflow
+* Rate limiting integration
+
+The backend has now reached a stage where all major business domains are implemented and exposed through REST APIs. The primary focus moving forward is testing, real-time features, frontend development, and deployment preparation.

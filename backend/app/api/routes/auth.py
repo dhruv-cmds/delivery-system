@@ -24,7 +24,7 @@ router = APIRouter(tags=["AUTHENTICATION"])
         "Passwords are securely hashed before storage."
     ),
 )
-@limiter.limit("3/second")
+@limiter.limit("5/minute")
 async def sign_up(
     request: Request,
     user: UserCreate,
@@ -45,7 +45,7 @@ async def sign_up(
         "for authenticated requests."
     ),
 )
-@limiter.limit("5/minute")
+@limiter.limit("10/minute")
 async def login(
     request: Request,
     credentials: LoginRequest,

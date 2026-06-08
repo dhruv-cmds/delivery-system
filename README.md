@@ -1,23 +1,110 @@
-# Delivery System
+# Food Delivery Management System
 
-A FastAPI-based backend for a food delivery platform. The project is being built around a clean service-oriented backend structure with async SQLAlchemy models, Pydantic validation schemas, JWT authentication, Dockerized MySQL, and planned support for orders, payments, tracking, notifications, and realtime websocket updates.
+A production-oriented food delivery backend built with FastAPI, SQLAlchemy Async ORM, MySQL, JWT authentication, role-based access control, Docker, and a service-layer architecture.
 
-## Current Status
+The system supports restaurant management, menu management, order processing, payments, delivery partner management, notifications, and order tracking.
 
-This project is under active development. Core database models, validation schemas, authentication helpers, dependency wiring, and several service-layer modules are in place. Auth, user, health, and menu API routes are wired into the FastAPI application. Order creation, lookup, update, status transition, deletion, and payment logic has also been added at the service layer. Tests, websocket handlers, background tasks, frontend work, and load test scripts are currently scaffolded or pending implementation.
+## Features
+
+### Authentication & Authorization
+
+* User registration
+* JWT-based authentication
+* Password hashing with bcrypt
+* Role-based access control
+* Admin-only endpoints
+* Restaurant owner authorization
+* Delivery partner authorization
+
+### Restaurant Management
+
+* Create restaurants
+* Retrieve restaurant details
+* Update restaurant information
+* Change restaurant status
+* Delete restaurants
+
+### Menu Management
+
+* Create menu items
+* Retrieve menu items
+* Retrieve restaurant menus
+* Update menu items
+* Change menu availability status
+* Delete menu items
+
+### Order Management
+
+* Create orders
+* Retrieve orders
+* Update order status
+* Delete orders
+* Customer-specific order visibility
+* Restaurant-specific order visibility
+* Delivery partner order visibility
+
+### Payment Management
+
+* Create payments for orders
+* Retrieve payment by payment ID
+* Retrieve payment by order ID
+* List payment history
+* Update payment status
+* Automatic order payment status synchronization
+
+### Delivery Partner Management
+
+* Register delivery partners
+* Update partner profile
+* Update delivery location
+* Retrieve partner information
+* Delete delivery partners
+
+### Notifications
+
+* Create notifications
+* Retrieve notifications
+* Mark notifications as read
+* Mark all notifications as read
+* Delete notifications
+* Administrative notification access
+
+### Health Monitoring
+
+* API health checks
+* Database connectivity checks
+
+---
 
 ## Tech Stack
 
-- Python 3.11
-- FastAPI
-- SQLAlchemy 2 async ORM
-- MySQL 8.0
-- aiomysql
-- Pydantic v2
-- passlib and bcrypt for password hashing
-- python-jose for JWT access tokens
-- Docker and Docker Compose
-- k6 planned for load testing
+### Backend
+
+* Python 3.11
+* FastAPI
+* SQLAlchemy 2.0 Async ORM
+* Pydantic v2
+* aiomysql
+* MySQL 8
+
+### Security
+
+* python-jose
+* passlib
+* bcrypt
+
+### Infrastructure
+
+* Docker
+* Docker Compose
+* Nginx
+
+### Testing & Performance
+
+* pytest (planned)
+* k6 load testing (planned)
+
+---
 
 ## Project Structure
 
@@ -26,70 +113,162 @@ This project is under active development. Core database models, validation schem
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │    └── routes/       # FastAPI route modules
-│   │   ├── core/              # Config, security, constants, logging, exceptions
-│   │   ├── db/                # Async database session and SQLAlchemy models
-│   │   ├── repositories/      # Repository layer placeholders
-│   │   ├── schemas/           # Pydantic request/response schemas
-│   │   ├── services/          # Business logic modules
-│   │   ├── tasks/             # Background task placeholders
-│   │   ├── tests/             # Test placeholders
-│   │   └── websocket/         # Realtime event and handler placeholders
+│   │   │   └── routes/                     # FastAPI route modules
+│   │   ├── core/                           # Config, security, constants, logging, exceptions
+│   │   ├── db/                             # Async database session and SQLAlchemy models
+│   │   ├── repositories/                   # Repository layer placeholders
+│   │   ├── schemas/                        # Pydantic request/response schemas
+│   │   ├── services/                       # Business logic modules
+│   │   ├── tasks/                          # Background task placeholders
+│   │   ├── tests/                          # Test placeholders
+│   │   └── websocket/                      # Realtime event and handler placeholders
 │   └── requirements.txt
-├── docker/                    # Dockerfiles
-├── frontend/                  # Frontend placeholder
-├── k6/                        # Load test placeholders
-├── nginx/                     # Nginx placeholder
-├── scripts/                   # Utility script placeholders
+│
+├── docker/                                 # Dockerfiles   
+├── frontend/                               # Frontend
+├── k6/                                     #Load test
+├── nginx/                                  # Nginx placeholder
+├── scripts/                                # Utility script
+│
 ├── docker-compose.yml
-└── docker-compose.dev.yml
+├── docker-compose.dev.yml
+└── README.md
 ```
 
-## Implemented Domain Model
+---
 
-The backend currently defines SQLAlchemy models for:
+## Domain Model
 
-- Users
-- Restaurants
-- Menu items
-- Orders
-- Order items
-- Payments
-- Delivery partners
-- Order tracking updates
-- Notifications
+The system currently includes the following entities:
 
-Relationships are defined between users, restaurants, orders, menu items, delivery partners, tracking updates, and notifications.
+* User
+* Restaurant
+* Menu Item
+* Order
+* Order Item
+* Payment
+* Delivery Partner
+* Order Tracking
+* Notification
 
-## Implemented Backend Work
+Entity relationships are implemented using SQLAlchemy ORM with proper foreign key constraints and ownership validation.
 
-- Async SQLAlchemy database engine and session factory for MySQL.
-- Environment-based database host selection for local and Docker execution.
-- JWT access token creation.
-- Password hashing and verification.
-- Custom HTTP exception classes with structured error responses.
-- Pydantic schemas for users, auth, restaurants, menu items, orders, payments, delivery partners, notifications, and websocket messages.
-- FastAPI application entrypoint with database table initialization during app lifespan.
-- API dependency helpers for database sessions, JWT-authenticated users, admin-only access, and menu manager access.
-- Auth API routes for signup and login.
-- User API routes for authenticated lookup and admin-only user listing.
-- Health API route with database connectivity check.
-- Menu API routes for create, lookup, restaurant-scoped listing, update, delete, and status changes.
-- User service for creating users and fetching users by id, email, or username.
-- Auth service for signup and login.
-- Restaurant service for create, read, update, and delete operations with ownership checks, including customer promotion to restaurant owner during restaurant creation.
-- Menu service for create, read, update, delete, and availability status changes with admin and restaurant owner authorization.
-- Notification service for creating, listing, marking as read, and deleting notifications.
-- Order query service for fetching available menu items for orders and retrieving customer-scoped orders.
-- Order service for single-item order creation, updating order items, status changes, and deletion with final-state, quantity, and order-value guards.
-- Payment service for creating order payments, fetching payments by payment id or order id, and updating payment status while syncing the related order.
+---
+
+## Implemented API Modules
+
+### Authentication
+
+```text
+POST /api/auth/signup
+POST /api/auth/login
+```
+
+### Users
+
+```text
+GET /api/user
+GET /api/user/{user_id}
+GET /api/user/email/{email}
+GET /api/user/username/{username}
+```
+
+### Restaurants
+
+```text
+POST   /api/restaurant
+GET    /api/restaurant/{restaurant_id}
+PUT    /api/restaurant/{restaurant_id}
+PATCH  /api/restaurant/{restaurant_id}/status
+DELETE /api/restaurant/{restaurant_id}
+```
+
+### Menu
+
+```text
+POST   /api/menus
+GET    /api/menus/{menu_id}
+GET    /api/restaurants/{restaurant_id}/menus
+PUT    /api/menus/{menu_id}
+PATCH  /api/menus/{menu_id}/status
+DELETE /api/menus/{menu_id}
+```
+
+### Orders
+
+```text
+POST   /api/order
+GET    /api/order/{order_id}
+GET    /api/order/all
+PATCH  /api/order/{order_id}/status
+DELETE /api/order/{order_id}
+```
+
+### Payments
+
+```text
+POST   /api/order/{order_id}/payment
+GET    /api/order/{order_id}/payment
+
+GET    /api/payment/all
+GET    /api/payment/{payment_id}
+
+PATCH  /api/payment/{payment_id}/status
+```
+
+### Delivery Partners
+
+```text
+POST   /api/delivery_partner
+
+GET    /api/delivery_partner/{partner_id}
+GET    /api/delivery_partner/user/{user_id}
+GET    /api/delivery_partner/all
+
+PUT    /api/delivery_partner/{partner_id}
+PUT    /api/delivery_partner/{partner_id}/location
+
+DELETE /api/delivery_partner/{partner_id}
+```
+
+### Notifications
+
+```text
+GET    /api/notification
+GET    /api/notification/{notification_id}
+
+PATCH  /api/notification/{notification_id}/read
+PATCH  /api/notification/read-all
+
+DELETE /api/notification/{notification_id}
+```
+
+### Admin Notifications
+
+```text
+GET /api/admin/notification/all
+GET /api/admin/notification/user/{user_id}
+```
+
+### Health
+
+```text
+GET /api/health
+```
+
+---
 
 ## Environment Variables
 
-Create `backend/.env` before running the project.
+Create:
+
+```text
+backend/.env
+```
 
 ```env
 ENV=docker
+
 SECRET_KEY=change-me
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -104,69 +283,129 @@ MYSQL_USER=delivery_user
 MYSQL_PASSWORD=delivery_password
 ```
 
-For local execution outside Docker, set `ENV=dev`. The database session currently expects MySQL on `127.0.0.1:3010` in development mode.
+For local development:
 
-## Running With Docker
+```env
+ENV=dev
+```
+
+---
+
+## Running with Docker
 
 ```bash
 docker compose up --build
 ```
 
-The API container is configured to expose FastAPI on:
+API:
 
 ```text
 http://localhost:8003
 ```
 
-The MySQL container is exposed on:
+Database:
 
 ```text
 127.0.0.1:3010
 ```
 
-For SELinux-aware local development, use:
+Development environment:
 
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-## Local Backend Setup
+---
+
+## Local Development
 
 ```bash
 cd backend
+
 python -m venv .venv
+
 source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-Then run the API:
+Run FastAPI:
 
 ```bash
 uvicorn backend.app.main:app --reload
 ```
 
+---
+
+## Current Development Status
+
+### Completed
+
+* Async SQLAlchemy setup
+* MySQL integration
+* JWT authentication
+* Password hashing
+* Custom exception system
+* Service-layer architecture
+* Role-based access control
+* Restaurant management
+* Menu management
+* Order management
+* Payment processing
+* Delivery partner management
+* Notification management
+* Health monitoring endpoints
+* Docker configuration
+* OpenAPI / Swagger documentation
+
+### In Progress
+
+* Order tracking workflows
+* WebSocket support
+* Background task processing
+* Frontend application
+
+### Planned
+
+* pytest test suite
+* k6 load testing
+* Redis integration
+* Real-time order tracking
+* Analytics dashboard
+* CI/CD pipeline
+* Production deployment
+
+---
+
 ## Development Notes
 
-- `backend/app/main.py` currently recreates database tables during application startup. This is useful for early development but should be replaced with migrations before production use.
-- Auth, user, health, and menu route files are implemented and registered.
-- Restaurant, notification, order, payment, tracking, and websocket route modules still need integration or completion.
-- Repository modules are currently placeholders.
-- Tracking, websocket, Redis, analytics, and background task services are currently placeholders.
-- Payment service is implemented, but payment API routes and tests still need to be added.
-- Order service currently supports one menu item per order and still needs route integration and broader workflow handling.
-- Test files are currently placeholders.
-- Frontend, nginx, k6 load tests, and utility scripts are currently placeholders.
+* Database tables are currently initialized during application startup.
+* Alembic migrations should replace automatic table creation before production deployment.
+* Repository layer exists but is intentionally lightweight because business logic is handled through services.
+* API endpoints are documented through FastAPI OpenAPI generation.
+* Docker is the primary development environment.
 
-## Suggested Next Steps
+---
 
-1. Replace startup table recreation with Alembic migrations or a clear database initialization strategy.
-2. Implement route handlers for restaurants, notifications, orders, payments, tracking, and websockets.
-3. Add focused tests for auth, user, menu, restaurant, order, and payment flows.
-4. Fix menu route path overlap between menu id and restaurant id lookups.
-5. Expand order business logic beyond the current single-item service flow.
-6. Seed useful development data.
-7. Implement k6 load tests after stable API endpoints exist.
+## Roadmap
+
+1. Complete remaining API modules.
+2. Implement WebSocket order tracking.
+3. Add Redis-based event handling.
+4. Write pytest integration and service-layer tests.
+5. Create k6 performance test suites.
+6. Configure CI/CD workflows.
+7. Complete frontend integration.
+8. Deploy to a cloud environment.
+
+---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License.
+
+See LICENSE for details.the [LICENSE](LICENSE) file for details.

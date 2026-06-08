@@ -34,7 +34,7 @@ public_router = APIRouter(
         "Accessible only to authenticated users and administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("5/minute")
 async def create_delivery_partner(
         request: Request,
         data: DeliveryPartnerCreate,
@@ -57,7 +57,7 @@ async def create_delivery_partner(
         "Accessible only to administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_delivery_partner_by_user_id(
         request: Request,
         user_id: int,
@@ -72,7 +72,7 @@ async def get_delivery_partner_by_user_id(
 
 
 @public_router.get(
-    "/id/{partner_id}",
+    "/{partner_id}",
     response_model=DeliveryPartnerResponse,
     summary="Get delivery partner by ID",
     description=(
@@ -80,7 +80,7 @@ async def get_delivery_partner_by_user_id(
         "Accessible to all users."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_delivery_partner_by_id(
         request: Request,
         partner_id: int,
@@ -102,7 +102,7 @@ async def get_delivery_partner_by_id(
         "Accessible only to administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("30/minute")
 async def get_all_delivery_partners(
         request: Request,
         current_user = Depends(require_admin_access),
@@ -123,7 +123,7 @@ async def get_all_delivery_partners(
         "Accessible to the assigned delivery partner and administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("20/minute")
 async def update_delivery_partner(
         request: Request,
         partner_id: int,
@@ -149,7 +149,7 @@ async def update_delivery_partner(
         "Accessible to the assigned delivery partner and administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("120/minute")
 async def update_location(
         request: Request,
         partner_id: int,
@@ -177,7 +177,7 @@ async def update_location(
         "Accessible to the assigned delivery partner and administrators."
     )
 )
-@limiter.limit("3/second")
+@limiter.limit("10/minute")
 async def delete_delivery_partner(
         request: Request,
         partner_id: int,

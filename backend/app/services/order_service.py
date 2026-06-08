@@ -122,28 +122,40 @@ async def create_order(
 
         await db.commit()
 
-        await notification_service.create_notification(
-            db=db,
-            user_id=current_user.id,
-            message="Your order has been placed successfully.",
-            notification_type=NotificationType.ORDER_UPDATE
-        )
+        try:
 
-        result = await db.execute(
-            select(Order)
-            .options(selectinload(Order.order_items))
-            .where(Order.id == new_order.id)
-        )
+            await notification_service.create_notification(
+                db=db,
+                user_id=current_user.id,
+                message="Your order has been placed successfully.",
+                notification_type=NotificationType.ORDER_UPDATE
+            )
 
-        new_order = result.scalar_one()
+            result = await db.execute(
+                select(Order)
+                .options(selectinload(Order.order_items))
+                .where(Order.id == new_order.id)
+            )
 
-        await db.refresh(new_order)
+            new_order = result.scalar_one()
 
-        logger.info(
-            "Order created successfully (order_id=%s, customer_id=%s)",
-            new_order.id,
-            current_user.id
-        )
+            await db.refresh(new_order)
+
+            logger.info(
+                "Order created successfully (order_id=%s, customer_id=%s)",
+                new_order.id,
+                current_user.id
+            )
+        
+        except Exception:
+
+            await db.rollback()
+
+            logger.exception(
+                "Notification failed"
+            )
+            
+            raise "Notification craetion faield"
 
         return new_order
 

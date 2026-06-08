@@ -33,7 +33,7 @@ public_router = APIRouter(
     summary="Create restaurant",
     description="Create a new restaurant."
 )
-@limiter.limit("3/second")
+@limiter.limit("5/minute")
 async def create_restaurant(
         request: Request,
         restaurant: RestaurantCreate,
@@ -54,7 +54,7 @@ async def create_restaurant(
     summary="Get restaurant by ID",
     description="Retrieve a restaurant by its ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("120/minute")
 async def get_restaurant_by_id(
         request: Request,
         restaurant_id: int,
@@ -68,12 +68,12 @@ async def get_restaurant_by_id(
 
 
 @router.put(
-    "/update/{restaurant_id}",
+    "/{restaurant_id}",
     response_model=RestaurantResponse,
     summary="Update restaurant",
     description="Update restaurant details by ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("20/minute")
 async def update_restaurant(
         request: Request,
         restaurant_id: int,
@@ -91,12 +91,12 @@ async def update_restaurant(
 
 
 @router.patch(
-    "/status/{restaurant_id}",
+    "/{restaurant_id}/status",
     response_model=RestaurantResponse,
     summary="Update restaurant status",
     description="Update the status of a restaurant."
 )
-@limiter.limit("3/second")
+@limiter.limit("20/minute")
 async def update_restaurant_status(
         request: Request,
         restaurant_id: int,
@@ -114,12 +114,12 @@ async def update_restaurant_status(
 
 
 @router.delete(
-    "/delete/{restaurant_id}",
+    "//{restaurant_id}",
     response_model=RestaurantResponse,
     summary="Delete restaurant",
     description="Delete a restaurant by ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("10/minute")
 async def delete_restaurant_by_id(
         request: Request,
         restaurant_id: int,

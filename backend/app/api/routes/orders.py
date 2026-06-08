@@ -20,17 +20,16 @@ from app.api import (
 )
 
 router = APIRouter(
-    prefix="/order",
     tags=["ORDER"]
 )
 
 @router.post(
-    "/",
+    "/order",
     response_model=OrderResponse,
     summary="Create order",
     description="Create a new order for the authenticated user."
 )
-@limiter.limit("3/second")
+@limiter.limit("5/minute")
 async def create_order(
         request: Request,
         order_data: OrderCreate,
@@ -46,12 +45,12 @@ async def create_order(
 
 
 @router.patch(
-    "/status/{order_id}",
+    "/order/{order_id}/status",
     response_model=OrderResponse,
     summary="Update order status",
     description="Update the status of an order."
 )
-@limiter.limit("3/second")
+@limiter.limit("20/minute")
 async def update_order_status(
         request: Request,
         order_id: int,
@@ -69,12 +68,12 @@ async def update_order_status(
 
 
 @router.delete(
-    "/delete/{order_id}",
+    "/order/{order_id}",
     response_model=OrderResponse,
     summary="Delete order",
     description="Delete an order by ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("10/minute")
 async def delete_order_by_id(
         request: Request,
         order_id: int,
@@ -95,7 +94,7 @@ async def delete_order_by_id(
     summary="Get menu item for order",
     description="Retrieve a menu item by ID for order processing."
 )
-@limiter.limit("3/second")
+@limiter.limit("120/minute")
 async def get_menu_item_for_order(
         request: Request,
         menu_item_id: int,
@@ -110,12 +109,12 @@ async def get_menu_item_for_order(
 
 
 @router.get(
-    "/all_orders",
+    "/order/all",
     response_model=list[OrderResponse],
     summary="Get all orders",
     description="Retrieve all orders visible to the authenticated user."
 )
-@limiter.limit("3/second")
+@limiter.limit("30/minute")
 async def get_all_orders(
         request: Request,
         current_user=Depends(get_current_user),
@@ -129,12 +128,12 @@ async def get_all_orders(
 
 
 @router.get(
-    "/{order_id}",
+    "/order/{order_id}",
     response_model=OrderResponse,
     summary="Get order by ID",
     description="Retrieve an order by its ID."
 )
-@limiter.limit("3/second")
+@limiter.limit("60/minute")
 async def get_order_by_id(
         request: Request,
         order_id: int,

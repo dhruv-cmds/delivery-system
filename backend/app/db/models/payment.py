@@ -89,5 +89,6 @@ class Payment(Base):
     # RELATIONSHIPS
 
     order: Mapped["Order"] = relationship(
-        "Order"
+        "Order",
+        back_populates="payment"
     )
