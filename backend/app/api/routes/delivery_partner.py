@@ -93,26 +93,6 @@ async def get_delivery_partner_by_id(
     )
 
 
-@router.get(
-    "/all",
-    response_model=list[DeliveryPartnerResponse],
-    summary="Get all delivery partners",
-    description=(
-        "Retrieve a list of all registered delivery partners. "
-        "Accessible only to administrators."
-    )
-)
-@limiter.limit("30/minute")
-async def get_all_delivery_partners(
-        request: Request,
-        current_user = Depends(require_admin_access),
-        db: AsyncSession = Depends(get_db)
-    ):
-
-    return await delivery_partner_service.get_all_delivery_partners(
-        db
-    )
-
 
 @router.put(
     "/{partner_id}",
@@ -137,6 +117,27 @@ async def update_delivery_partner(
         partner_id,
         data,
         current_user
+    )
+
+
+@router.get(
+    "/all",
+    response_model=list[DeliveryPartnerResponse],
+    summary="Get all delivery partners",
+    description=(
+        "Retrieve a list of all registered delivery partners. "
+        "Accessible only to administrators."
+    )
+)
+@limiter.limit("30/minute")
+async def get_all_delivery_partners(
+        request: Request,
+        current_user = Depends(require_admin_access),
+        db: AsyncSession = Depends(get_db)
+    ):
+
+    return await delivery_partner_service.get_all_delivery_partners(
+        db
     )
 
 

@@ -13,7 +13,10 @@ async def create_notification (
     ):
 
     if notification.id is None:
+
         db.add(notification)
+
+    return notification
 
 
 async def get_user_notifications(    
@@ -51,28 +54,6 @@ async def get_notification_by_id(
 
     return notification
     
-async def mark_notification_as_read(
-        db: AsyncSession,
-        notification_id: int,
-        current_user: User
-    ):
-
-    result = await db.execute(
-
-        select(Notification)
-        .where(
-            and_(
-                (Notification.id == notification_id),
-                (Notification.user_id == current_user.id)
-            ),
-        )
-    )
-
-    notification = result.scalar_one_or_none()
-
-    return notification
-
-    
 
 async def mark_all_notifications_as_read(
         db: AsyncSession,
@@ -94,9 +75,7 @@ async def mark_all_notifications_as_read(
     )
 
 
-
-
-async def delete_notification(
+async def get_notification_by_id(
         db: AsyncSession,
         notification_id: int,
         current_user: User
@@ -115,11 +94,19 @@ async def delete_notification(
 
     notification = result.scalar_one_or_none()
 
+    if notification:
+        
+        await db.delete(notification)
+
+
+async def delete_notification(
+        db: AsyncSession,
+        notification: Notification
+    ):
 
     await db.delete(notification)
 
-
-
+    
 async def get_all_notifications(
         db: AsyncSession,
     ):

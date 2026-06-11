@@ -409,6 +409,20 @@ class DeliveryPartnerAlreadyExistsError(DeliverySystemError):
             status_code=status.HTTP_409_CONFLICT
         )
 
+class NotificationNotFoundError(DeliverySystemError):
+
+    def __init__(
+            
+        self,
+        message: str = "Notification not found"
+    ):
+
+        super().__init__(
+
+            error_code="NOTIFICATION_NOT_FOUND",
+            message=message,
+            status_code=status.HTTP_404_NOT_FOUND
+        )
 
 class InvalidOperationError(DeliverySystemError):
 

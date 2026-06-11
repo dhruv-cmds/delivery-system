@@ -90,6 +90,7 @@ async def delete_order_by_id(
     )
 
 
+#  direct repo call it should be service
 @router.get(
     "/menu_item/{menu_item_id}",
     response_model=MenuResponse,
@@ -111,6 +112,27 @@ async def get_menu_item_for_order(
 
 
 @router.get(
+    "/order/{order_id}",
+    response_model=OrderResponse,
+    summary="Get order by ID",
+    description="Retrieve an order by its ID."
+)
+@limiter.limit("60/minute")
+async def get_order_by_id(
+        request: Request,
+        order_id: int,
+        current_user=Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+    ):
+
+    return await order_service.get_order_by_id(
+        db,
+        order_id,
+        current_user
+    )
+
+
+@router.get(
     "/order/all",
     response_model=list[OrderResponse],
     summary="Get all orders",
@@ -125,26 +147,5 @@ async def get_all_orders(
 
     return await order_service.get_all_orders(
         db,
-        current_user
-    )
-
-
-@router.get(
-    "/order/{order_id}",
-    response_model=OrderResponse,
-    summary="Get order by ID",
-    description="Retrieve an order by its ID."
-)
-@limiter.limit("60/minute")
-async def get_order_by_id(
-        request: Request,
-        order_id: int,
-        current_user=Depends(get_current_user),
-        db: AsyncSession = Depends(get_db)
-    ):
-
-    return await order_repository.get_order_by_id(
-        db,
-        order_id,
         current_user
     )

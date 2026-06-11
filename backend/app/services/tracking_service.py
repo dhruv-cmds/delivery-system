@@ -5,6 +5,7 @@ from app.db.models import OrderTracking
 from app.core import (
     DatabaseError,
     logger
+
 )
 
 
@@ -15,6 +16,13 @@ async def create_tracking(
         longitude,
     ):
     
+    if latitude < -90 or latitude > 90:
+        raise # InvalidLatitudeError()
+
+    if longitude < -180 or longitude > 180:
+        raise  # InvalidLongitudeError()
+
+
     tracking = OrderTracking(
         order_id=order_id,
         latitude=latitude,

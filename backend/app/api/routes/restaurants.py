@@ -114,7 +114,7 @@ async def update_restaurant_status(
 
 
 @router.delete(
-    "//{restaurant_id}",
+    "/{restaurant_id}",
     response_model=RestaurantResponse,
     summary="Delete restaurant",
     description="Delete a restaurant by ID."

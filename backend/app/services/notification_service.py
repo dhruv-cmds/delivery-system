@@ -1,45 +1,42 @@
-from sqlalchemy import select, update, and_
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import NotificationType, NotificationStatus
+from app.core import (
+    logger,
+    DatabaseError,
+    PermissionDeniedError,
+    NotificationNotFoundError,
+    NotificationType,
+    NotificationStatus,
+    UserRole,
+)
 
 from app.db.models import Notification, User
 
 from app.repositories import notification_repository
 
-from app.core import (
-    
-    logger,
-    DatabaseError,
-    PermissionDeniedError
 
-)
+async def create_notification(
+    db: AsyncSession,
+    user_id: int,
+    message: str,
+    notification_type: NotificationType,
+):
 
-from app.core import UserRole
-
-async def create_notification (
-        db: AsyncSession,
-        user_id: int,
-        message: str,
-        notification_type: NotificationType
-        
-    ):
-
-    notification = Notification (
-
+    notification = Notification(
         user_id=user_id,
         message=message,
-        notification_type=notification_type
+        notification_type=notification_type,
     )
 
     try:
 
         async with db.begin():
-    
-            notification = await notification_repository.create_notification(
-                db,
-                notification
+
+            notification = (
+                await notification_repository.create_notification(
+                    db,
+                    notification,
+                )
             )
 
         await db.refresh(notification)
@@ -47,95 +44,91 @@ async def create_notification (
         logger.info(
             "Notification created successfully (user_id=%s, type=%s)",
             user_id,
-            notification_type
+            notification_type,
         )
-        
+
         return notification
-        
+
     except Exception:
 
-        logger.exception("Unexpected error while creating notification")
+        logger.exception(
+            "Unexpected error while creating notification"
+        )
 
         raise DatabaseError()
-    
 
-async def get_user_notifications(    
-        db: AsyncSession,
-        current_user: User
-    ):
 
-    result = await db.execute(
+async def get_user_notifications(
+    db: AsyncSession,
+    current_user: User,
+):
 
-        select(Notification)
-        .where(Notification.user_id == current_user.id)
-        .order_by(Notification.created_at.desc())
+    return await notification_repository.get_user_notifications(
+        db,
+        current_user,
     )
 
-    return result.scalars().all()
 
 async def get_notification_by_id(
-        db: AsyncSession,
-        notification_id: int,
-        current_user: User
-    ):
+    db: AsyncSession,
+    notification_id: int,
+    current_user: User,
+):
 
-    result = await db.execute(
-        select(Notification)
-        .where(
-            and_(
-                (Notification.id == notification_id),
-                (Notification.user_id == current_user.id)
-            )
+    notification = (
+        await notification_repository.get_notification_by_id(
+            db,
+            notification_id,
+            current_user,
         )
-)
-
-    notification = result.scalar_one_or_none()
+    )
 
     if not notification:
 
         logger.warning(
-            "Notification not found or access denied (notification_id=%s, user_id=%s)",
+            "Notification not found or access denied "
+            "(notification_id=%s, user_id=%s)",
             notification_id,
-            current_user.id
+            current_user.id,
         )
 
-        raise PermissionDeniedError()
+        raise NotificationNotFoundError()
 
     return notification
-    
+
+
 async def mark_notification_as_read(
-        db: AsyncSession,
-        notification_id: int,
-        current_user: User
-    ):
+    db: AsyncSession,
+    notification_id: int,
+    current_user: User,
+):
 
-    result = await db.execute(
-
-        select(Notification)
-        .where(
-            and_(
-                (Notification.id == notification_id),
-                (Notification.user_id == current_user.id)
-            ),
+    notification = (
+        await notification_repository.get_notification_by_id(
+            db,
+            notification_id,
+            current_user,
         )
     )
-
-    notification = result.scalar_one_or_none()
 
     if not notification:
 
         logger.warning(
-        "Notification not found (notification_id=%s, user_id=%s)",
-        notification_id,
-        current_user.id
-    )
-        return None
-    
-    notification.status = NotificationStatus.READ
+            "Notification not found "
+            "(notification_id=%s, user_id=%s)",
+            notification_id,
+            current_user.id,
+        )
+
+        raise NotificationNotFoundError()
 
     try:
 
-        await db.commit()
+        async with db.begin():
+
+            notification.status = (
+                NotificationStatus.READ
+            )
 
         await db.refresh(notification)
 
@@ -143,147 +136,147 @@ async def mark_notification_as_read(
 
     except Exception:
 
-        await db.rollback()
+        logger.exception(
+            "Unexpected error while marking notification as read"
+        )
 
-        logger.exception("Unexpected error while marking notification as read")
         raise DatabaseError()
-    
+
 
 async def mark_all_notifications_as_read(
-        db: AsyncSession,
-        current_user: User
-    ):
+    db: AsyncSession,
+    current_user: User,
+):
 
     try:
 
-        await db.execute(
-            update(Notification)
-            .where(
-                and_(
-                    Notification.user_id == current_user.id,
-                    Notification.status == NotificationStatus.UNREAD
-                ),
-            )
-            .values(
-                status=NotificationStatus.READ
-            )
-        )
+        async with db.begin():
 
-        await db.commit()
+            await (
+                notification_repository
+                .mark_all_notifications_as_read(
+                    db,
+                    current_user,
+                )
+            )
 
         logger.info(
-            "All notifications marked as read (user_id=%s)",
-            current_user.id
+            "All notifications marked as read "
+            "(user_id=%s)",
+            current_user.id,
         )
-        
+
         return {
-            "message": "All notifications marked as read"
+            "message": (
+                "All notifications marked as read"
+            )
         }
 
     except Exception:
 
-        await db.rollback()
-
         logger.exception(
-            "Unexpected error while marking all notifications as read"
+            "Unexpected error while marking "
+            "all notifications as read"
         )
+
         raise DatabaseError()
 
 
 async def delete_notification(
-        db: AsyncSession,
-        notification_id: int,
-        current_user: User
-    ):
+    db: AsyncSession,
+    notification_id: int,
+    current_user: User,
+):
 
-    result = await db.execute(
-
-        select(Notification)
-        .where(
-            and_(
-                (Notification.id == notification_id),
-                (Notification.user_id == current_user.id)
-            ), 
+    notification = (
+        await notification_repository
+        .get_notification_by_id(
+            db,
+            notification_id,
+            current_user,
         )
     )
-
-    notification = result.scalar_one_or_none()
 
     if not notification:
 
         logger.warning(
-            "Notification deletion failed: notification not found (notification_id=%s, user_id=%s)",
+            "Notification deletion failed: "
+            "notification not found "
+            "(notification_id=%s, user_id=%s)",
             notification_id,
-            current_user.id
+            current_user.id,
         )
 
-        return None
+        raise NotificationNotFoundError()
 
     try:
 
-        await db.delete(notification)
+        async with db.begin():
 
-        await db.commit()
+            await notification_repository.delete_notification(
+                db,
+                notification_id,
+            )
 
         logger.info(
-            "Notification deleted successfully (notification_id=%s)",
-            notification_id
+            "Notification deleted successfully "
+            "(notification_id=%s)",
+            notification_id,
         )
 
         return True
 
     except Exception:
 
-        await db.rollback()
+        logger.exception(
+            "Unexpected error while deleting "
+            "notification"
+        )
 
-        logger.exception("Unexpected error while deleting notification")
-        raise DatabaseError()  
-    
+        raise DatabaseError()
+
 
 async def get_all_notifications(
-        db: AsyncSession,
-        current_user: User
-    ):
+    db: AsyncSession,
+    current_user: User,
+):
 
     if current_user.role != UserRole.ADMIN:
 
         logger.warning(
-            "Notification access denied: user ID %s is not an administrator",
-            current_user.id
+            "Notification access denied: "
+            "user ID %s is not an administrator",
+            current_user.id,
         )
 
         raise PermissionDeniedError()
-    
-    result = await db.execute (
-        select(Notification)
-        .order_by(Notification.created_at.desc())
-    )
 
-    return result.scalars().all()
+    return await (
+        notification_repository
+        .get_all_notifications(db)
+    )
 
 
 async def get_notifications_by_user_id(
-        db: AsyncSession,
-        user_id: int,
-        current_user: User
-    ):
+    db: AsyncSession,
+    user_id: int,
+    current_user: User,
+):
 
     if current_user.role != UserRole.ADMIN:
 
         logger.warning(
-            "User notification access denied: user ID %s is not an administrator",
-            current_user.id
+            "User notification access denied: "
+            "user ID %s is not an administrator",
+            current_user.id,
         )
-        
+
         raise PermissionDeniedError()
-    
 
-    result = await db.execute(
-        select(Notification)
-        .where(
-            Notification.user_id == user_id
+    return await (
+        notification_repository
+        .get_notifications_by_user_id(
+            db,
+            user_id,
         )
-        .order_by(Notification.created_at.desc())
     )
-
-    return result.scalars().all()

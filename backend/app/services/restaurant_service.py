@@ -77,15 +77,11 @@ async def create_restaurant(
 
     except IntegrityError:
 
-        await db.rollback()
-
         logger.exception("Database integrity error while creating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
         
-        await db.rollback()
-
         logger.exception("Unexpected error while creating restaurant")
         raise DatabaseError()
 
@@ -170,15 +166,11 @@ async def update_restaurant(
         return restaurant
 
     except IntegrityError:
-
-        await db.rollback()
-
+        
         logger.exception("Database integrity error while updating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
-
-        await db.rollback()
 
         logger.exception("Unexpected error while updating restaurant")
         raise DatabaseError()

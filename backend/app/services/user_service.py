@@ -159,7 +159,7 @@ async def get_user_by_username(
             username
         )
         
-        return UserNotFoundError()
+        raise UserNotFoundError()
 
     logger.info(
         "User retrieved successfully (username=%s)",

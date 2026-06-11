@@ -38,6 +38,8 @@ def build_payment_metadata(payment_method):
     paid_at = None
     transaction_reference = None
 
+    # TODO:
+    # Replace with gateway callback flow
     if payment_method in ONLINE_PAYMENT_METHODS:
 
         status = PaymentStatus.SUCCESS
@@ -68,6 +70,15 @@ async def make_payment(
         order_id,
         current_user,
     )
+
+    if not order:
+
+        logger.warning(
+            "order not found by order ID %s",
+            order_id
+        )
+
+        raise OrderNotFoundError()
 
     existing_payment = await payment_repository.get_payment_by_order_id(
         db,
@@ -187,10 +198,15 @@ async def get_payment_by_order_id(
         order_id,
         current_user,
     )
-
-    if not order:
-        raise OrderNotFoundError()
     
+    if not order:
+
+        logger.warning(
+            "order not found by order ID %s",
+            order_id
+        )
+
+        raise OrderNotFoundError()
 
     payment = await payment_repository.get_payment_by_order_id(
         db,
@@ -297,7 +313,7 @@ async def update_payment_status(
                 payment,
             )
 
-        await db.refresh(payment)
+            await db.refresh(payment)
             
         logger.info(
             "Payment status updated successfully (payment_id=%s, status=%s)",

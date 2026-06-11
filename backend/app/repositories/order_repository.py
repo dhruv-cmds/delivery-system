@@ -88,7 +88,9 @@ async def get_menu_item_for_order(
         .where(Menu.id == menu_item_id)
     )
 
-    return result.scalar_one_or_none()
+    if result:
+        
+        return result.scalar_one_or_none()
 
 
 async def create_order(

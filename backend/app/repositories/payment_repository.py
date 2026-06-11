@@ -16,10 +16,12 @@ async def save_payment(
     ):
 
     if payment.id is None:
+        
         db.add(payment)
 
         await db.flush()
 
+    return payment
 
 async def get_payment_by_order_id(
         db: AsyncSession,

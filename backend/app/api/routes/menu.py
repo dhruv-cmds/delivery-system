@@ -13,7 +13,7 @@ from app.api import (
 )
 
 router = APIRouter(
-        prefix="/meuns",
+        prefix="/menus",
         tags=["MENU"],
         dependencies=[Depends(get_current_user)]
     )

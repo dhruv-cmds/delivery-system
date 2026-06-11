@@ -72,7 +72,6 @@ async def get_user_by_email(
     return await user_service.get_user_by_email(
         db,
         user_email,
-        current_user
     )
 
 
