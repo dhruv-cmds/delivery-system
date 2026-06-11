@@ -2,6 +2,8 @@ from passlib.context import CryptContext
 
 from jose import jwt
 
+from uuid import uuid4
+
 from datetime import (
     datetime, 
     timedelta, 
@@ -28,7 +30,18 @@ def create_access_token(data: dict):
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode.update({"exp": expire})
+    now = datetime.now(timezone.utc)
+
+    to_encode.update(
+        {   
+            "iat": now,
+            "nbf": now,  
+            "exp": expire, 
+
+            "iss": "delivery_api",
+            "jti": str(uuid4())                             
+        }
+    )
 
     token = jwt.encode(
         to_encode, 

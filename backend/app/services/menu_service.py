@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, and_
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -69,8 +69,10 @@ async def create_menu_item(
 
         select(Menu)
         .where(
-            (Menu.restaurant_id == menu.restaurant_id),
-            (Menu.item_name == menu.item_name),
+            and_(
+                (Menu.restaurant_id == menu.restaurant_id),
+                (Menu.item_name == menu.item_name)
+            ),
         )
     )
 

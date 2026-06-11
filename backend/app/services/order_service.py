@@ -1,14 +1,16 @@
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.models import Order, OrderItem, User
-from app.schemas import OrderCreate, OrderItemCreate
+from app.schemas import OrderCreate
 
 from app.core import (
+    
     UserRole,
     OrderStatus,
     NotificationType,
@@ -29,9 +31,10 @@ from app.core import (
 )
 
 from app.services import (
-    get_all_orders,
+
     get_menu_item_for_order,
     get_order_by_id,
+
     notification_service,
 )
 

@@ -12,6 +12,7 @@ from app.core import (
     create_access_token,
     verify_password,
 
+    UserNotFoundError,
     InvalidCredentialsError,
     logger
 )
@@ -26,18 +27,21 @@ async def login(
         password: str,
     ):
 
-    user = await get_user_by_email(
-        db,
-        email,
-    )
+    try:
 
-    if not user:
-
-        logger.warning(
-            "Login failed: user not found for email '%s'",
-            email
+        user = await get_user_by_email(
+            db,
+            email,
         )
-        raise InvalidCredentialsError()
+
+    except UserNotFoundError:
+
+            logger.warning(
+                "Login failed: user not found for email '%s'",
+                email
+            )
+
+            raise InvalidCredentialsError()
 
     if not verify_password(password, user.hashed_password):
 
@@ -45,11 +49,13 @@ async def login(
             "Login failed: invalid password for user ID %s",
             user.id
         )
+
         raise InvalidCredentialsError()
 
     token = create_access_token(
         data={
             "sub": str(user.id),
+            "email": user.email,
             "role": user.role
         }
     )

@@ -22,6 +22,7 @@ async def create_tracking(
     )
 
     try:
+        
         db.add(tracking)
 
         await db.commit()

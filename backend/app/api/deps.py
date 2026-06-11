@@ -39,7 +39,8 @@ async def get_current_user(
 
             token, 
             setting.SECRET_KEY, 
-            algorithms=[setting.ALGORITHM]
+            algorithms=[setting.ALGORITHM],
+            issuer="delivery_api"
         )
 
         subject = payload.get("sub")

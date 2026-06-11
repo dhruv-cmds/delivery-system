@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, and_
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,8 +79,10 @@ async def get_notification_by_id(
     result = await db.execute(
         select(Notification)
         .where(
-            Notification.id == notification_id,
-            Notification.user_id == current_user.id
+            and_(
+                (Notification.id == notification_id),
+                (Notification.user_id == current_user.id)
+            )
         )
     )
 
@@ -108,8 +110,10 @@ async def mark_notification_as_read(
 
         select(Notification)
         .where(
-            (Notification.id == notification_id),
-            (Notification.user_id == current_user.id)
+            and_(
+                (Notification.id == notification_id),
+                (Notification.user_id == current_user.id)
+            ),
         )
     )
 
@@ -152,8 +156,10 @@ async def mark_all_notifications_as_read(
         await db.execute(
             update(Notification)
             .where(
-                Notification.user_id == current_user.id,
-                Notification.status == NotificationStatus.UNREAD
+                and_(
+                    Notification.user_id == current_user.id,
+                    Notification.status == NotificationStatus.UNREAD
+                ),
             )
             .values(
                 status=NotificationStatus.READ
@@ -191,8 +197,10 @@ async def delete_notification(
 
         select(Notification)
         .where(
-            (Notification.id == notification_id),
-            (Notification.user_id == current_user.id)
+            and_(
+                (Notification.id == notification_id),
+                (Notification.user_id == current_user.id)
+            ), 
         )
     )
 
