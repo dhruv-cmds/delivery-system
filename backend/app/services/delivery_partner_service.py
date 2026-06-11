@@ -1,5 +1,3 @@
-from sqlalchemy import select
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,20 +22,20 @@ from app.core import (
     DeliveryPartnerAlreadyExistsError,
 )
 
+from app.repositories import delivery_repository
+
 async def create_delivery_partner(
         db: AsyncSession,
         data: DeliveryPartnerCreate,
         current_user: User,
     ):
 
-    existing = await db.execute(
-        select(DeliveryPartner)
-        .where(
-            DeliveryPartner.user_id == current_user.id
-        )
+    existing = await delivery_repository.get_delivery_partner_user_id(
+        db,
+        current_user.id
     )
 
-    if existing.scalar_one_or_none():
+    if existing:
 
         logger.warning(
             "Delivery partner creation failed: profile already exists for user ID %s",
@@ -46,10 +44,12 @@ async def create_delivery_partner(
 
         raise DeliveryPartnerAlreadyExistsError()
     
-    if current_user.role == UserRole.RESTAURANT_OWNER:
+    if current_user.role != UserRole.CUSTOMER:
 
         logger.warning(
-            "Delivery partner creation denied: restaurant owners are not permitted"
+            "Delivery partner creation denied: only customers can become delivery partners (user_id=%s, role=%s)",
+            current_user.id,
+            current_user.role
         )
 
         raise PermissionDeniedError()
@@ -59,16 +59,22 @@ async def create_delivery_partner(
         vehicle_type=data.vehicle_type,
     )
 
-
     try:
 
-        if current_user.role == UserRole.CUSTOMER:
+        async with db.begin():
 
-            current_user.role = UserRole.DELIVERY_PARTNER
+            if current_user.role == UserRole.CUSTOMER:
 
-        db.add(partner)
 
-        await db.commit()
+                logger.info(
+                    "User role updated from CUSTOMER to DELIVERY_PARTNER (user_id=%s)",
+                    current_user.id
+                )
+
+                current_user.role = UserRole.DELIVERY_PARTNER
+
+            db.add(partner)
+
 
         await db.refresh(partner)
 
@@ -81,8 +87,6 @@ async def create_delivery_partner(
 
     except IntegrityError:
 
-        await db.rollback()
-
         logger.exception(
             "Database integrity error while creating delivery partner"
         )
@@ -90,8 +94,6 @@ async def create_delivery_partner(
         raise DeliveryPartnerAlreadyExistsError()
 
     except Exception:
-
-        await db.rollback()
 
         logger.exception(
             "Unexpected error while creating delivery partner"
@@ -105,14 +107,11 @@ async def get_delivery_partner_by_user_id(
         user_id: int,
     ):
 
-    result = await db.execute(
-        select(DeliveryPartner)
-        .where(
-            DeliveryPartner.user_id == user_id
-        )
-    )
 
-    partner = result.scalar_one_or_none()
+    partner = await delivery_repository.get_delivery_partner_user_id(
+        db,
+        user_id
+    )
 
     if not partner:
 
@@ -130,14 +129,10 @@ async def get_delivery_partner_by_id(
         partner_id: int,
     ):
 
-    result = await db.execute(
-        select(DeliveryPartner)
-        .where(
-            DeliveryPartner.id == partner_id
-        )
+    partner = await delivery_repository.get_delivery_partner_by_id(
+        db,
+        partner_id
     )
-
-    partner = result.scalar_one_or_none()
 
     if not partner:
 
@@ -151,32 +146,35 @@ async def get_delivery_partner_by_id(
     return partner
 
 
-
 async def get_all_delivery_partners(
         db: AsyncSession,
     ):
 
-    result = await db.execute(
-        select(DeliveryPartner)
-        .order_by(
-            DeliveryPartner.created_at.desc()
-        )
+    return await delivery_repository.get_all_delivery_partners(
+        db
     )
-
-    return result.scalars().all()
 
 
 async def update_delivery_partner(
         db: AsyncSession,
         partner_id: int,
-        data: VehicleTypeStatus,
+        vehicle_type: VehicleTypeStatus,
         current_user: User,
     ):
 
-    partner = await get_delivery_partner_by_id(
+    partner = await delivery_repository.get_delivery_partner_by_id(
         db,
         partner_id,
     )
+
+    if not partner:
+
+        logger.warning(
+            "Delivery partner lookup failed because the profile was not found %s",
+            partner_id
+        )
+
+        raise DeliveryPartnerNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN
@@ -190,9 +188,9 @@ async def update_delivery_partner(
 
         raise PermissionDeniedError()
 
-    partner.vehicle_type = data
+    partner.vehicle_type = vehicle_type
 
-    try:
+    try: 
 
         await db.commit()
 
@@ -224,10 +222,19 @@ async def update_location(
         current_user: User,
     ):
 
-    partner = await get_delivery_partner_by_id(
+    partner = await delivery_repository.get_delivery_partner_by_id(
         db,
         partner_id,
     )
+
+    if not partner:
+
+        logger.warning(
+            "Delivery partner lookup failed because the profile was not found %s",
+            partner_id
+        )
+
+        raise DeliveryPartnerNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN
@@ -235,7 +242,7 @@ async def update_location(
     ):
 
         logger.warning(
-            "Location update denied: user ID %s authorized",
+            "Location update denied: user ID %s is not authorized",
             current_user.id
         )
 
@@ -274,10 +281,19 @@ async def delete_delivery_partner(
         current_user: User,
     ):
 
-    partner = await get_delivery_partner_by_id(
+    partner = await delivery_repository.get_delivery_partner_by_id(
         db,
         partner_id,
     )
+
+    if not partner:
+
+        logger.warning(
+            "Delivery partner lookup failed because the profile was not found %s",
+            partner_id
+        )
+
+        raise DeliveryPartnerNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN

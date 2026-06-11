@@ -1,18 +1,17 @@
 from decimal import Decimal
 
-from sqlalchemy import select, and_
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.db.models import Order, OrderItem, User
 from app.schemas import OrderCreate
+from app.repositories import order_repository
 
 from app.core import (
-    
+
     UserRole,
     OrderStatus,
+    MenuStatus,
     NotificationType,
 
     MAX_ORDER_TIMES,
@@ -31,11 +30,7 @@ from app.core import (
 )
 
 from app.services import (
-
-    get_menu_item_for_order,
-    get_order_by_id,
-
-    notification_service,
+    notification_service
 )
 
 
@@ -68,6 +63,7 @@ async def create_order(
             "Order creation denied: user ID %s is not a customer",
             current_user.id
         )
+
         raise PermissionDeniedError()
 
     if order_data.quantity <= 0:
@@ -86,9 +82,32 @@ async def create_order(
         )
         raise InvalidOperationError()
 
-    menu_item = await get_menu_item_for_order(
+    menu_item = await order_repository.get_menu_item_for_order(
         db,
         order_data.menu_item_id,
+    )
+
+    if not menu_item:
+
+        logger.warning(
+            "Menu item not found for order processing (menu_item_id=%s)",
+            order_data.menu_item_id
+        )
+
+        raise OrderItemNotFoundError("Menu item not found")
+
+    if menu_item.status != MenuStatus.AVAILABLE:
+
+        logger.warning(
+            "Menu item unavailable for ordering (menu_item_id=%s)",
+            order_data.menu_item_id
+        )
+
+        raise InvalidOperationError("Menu item is not available")
+    
+    logger.info(
+        "Menu item retrieved for order processing (menu_item_id=%s)",
+        order_data.menu_item_id
     )
 
     item_total = menu_item.price * Decimal(order_data.quantity)
@@ -119,14 +138,13 @@ async def create_order(
 
     try:
 
-        db.add(new_order)
+        async with db.begin():
 
-        await db.flush()
-
-        await db.commit()
-
-        try:
-
+            new_order = await order_repository.create_order(
+                db,
+                new_order
+            )
+                
             await notification_service.create_notification(
                 db=db,
                 user_id=current_user.id,
@@ -134,47 +152,32 @@ async def create_order(
                 notification_type=NotificationType.ORDER_UPDATE
             )
 
-            result = await db.execute(
-                select(Order)
-                .options(selectinload(Order.order_items))
-                .where(Order.id == new_order.id)
-            )
-
-            new_order = result.scalar_one()
-
-            await db.refresh(new_order)
-
             logger.info(
-                "Order created successfully (order_id=%s, customer_id=%s)",
+                "Notification created successfully for (order_id=%s, customer_id=%s)",
                 new_order.id,
                 current_user.id
             )
-        
-        except Exception:
-
-            await db.rollback()
-
-            logger.exception(
-                "Notification failed"
-            )
             
-            raise "Notification craetion faield"
-
-        return new_order
-
     except IntegrityError:
 
-        await db.rollback()
-
         logger.exception("Database integrity error while creating order")
+
         raise OrderItemNotFoundError()
 
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while creating order")
+        
         raise DatabaseError()
+
+    logger.info(
+        "Order created successfully (order_id=%s, customer_id=%s)",
+        new_order.id,
+        current_user.id,
+    )
+
+    return new_order
+
 
 async def update_order_status(
         db: AsyncSession,
@@ -183,10 +186,26 @@ async def update_order_status(
         current_user: User,
     ):
 
-    order = await get_order_by_id(
+    order = await order_repository.get_order_by_id(
         db,
         order_id,
         current_user,
+    )
+
+    if not order:
+
+        logger.warning(
+            "Order not found or access denied (order_id=%s, user_id=%s)",
+            order_id,
+            current_user.id
+        )
+
+        raise OrderNotFoundError()
+    
+
+    logger.info(
+        "Order retrieved successfully (order_id=%s)",
+        order_id
     )
 
     if order.status == OrderStatus.DELIVERED:
@@ -222,8 +241,6 @@ async def update_order_status(
                 notification_type=NotificationType.ORDER_UPDATE
             )
 
-        await db.refresh(order)
-
         logger.info(
             "Order status updated successfully (order_id=%s, status=%s)",
             order_id,
@@ -246,11 +263,28 @@ async def delete_order_by_id(
         current_user: User
     ):
 
-    order = await get_order_by_id(
+    order = await order_repository.get_order_by_id(
         db,
         order_id,
         current_user,
     )
+
+    if not order:
+
+        logger.warning(
+            "Order not found or access denied (order_id=%s, user_id=%s)",
+            order_id,
+            current_user.id
+        )
+
+        raise OrderNotFoundError()
+    
+
+    logger.info(
+        "Order retrieved successfully (order_id=%s)",
+        order_id
+    )
+
 
     if order.status == OrderStatus.DELIVERED:
 
@@ -273,9 +307,12 @@ async def delete_order_by_id(
 
     try:
 
-        await db.delete(order)
+        async with db.begin():
 
-        await db.commit()
+            await order_repository.delete_order(
+                db,
+                order
+            )
 
         logger.info(
             "Order deleted successfully (order_id=%s)",
@@ -286,14 +323,61 @@ async def delete_order_by_id(
 
     except IntegrityError:
 
-        await db.rollback()
-
         logger.exception("Database integrity error while deleting order")
+
         raise OrderNotFoundError()
 
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while deleting order")
+
         raise DatabaseError()
+    
+
+async def get_all_orders(
+        db: AsyncSession,
+        current_user: User
+    ):
+
+    orders = await order_repository.get_all_orders(
+        db,
+        current_user
+    )
+    
+
+    logger.info(
+        "All order retrieved successfully for user (user_id=%s)",
+        current_user.id
+    )
+
+    return orders
+
+async def get_order_by_id (
+        db: AsyncSession,
+        order_id: int,
+        current_user: User
+    ):
+
+    order = await order_repository.get_order_by_id(
+        db,
+        order_id,
+        current_user
+    )   
+
+    if not order:
+
+        logger.warning(
+            "Order not found or access denied (order_id=%s, user_id=%s)",
+            order_id,
+            current_user.id
+        )
+
+        raise OrderNotFoundError()
+    
+
+    logger.info(
+        "Order retrieved successfully (order_id=%s)",
+        order_id
+    )
+
+    return order

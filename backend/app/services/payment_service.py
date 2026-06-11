@@ -1,19 +1,14 @@
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.db.models import Payment, Order, User
+from app.db.models import Payment, User
 from app.schemas import PaymentCreate
+from app.repositories import payment_repository
 
-from app.services.order_query_service import (
-    apply_order_visibility,
-    get_order_by_id
-)
-
+from app.repositories import order_repository
 from app.core import (
 
     logger,
@@ -26,6 +21,8 @@ from app.core import (
     PaymentNotFoundError,
     PaymentAlreadyCompletedError,
     PermissionDeniedError,
+
+    OrderNotFoundError,
 )
 
 
@@ -33,16 +30,29 @@ ONLINE_PAYMENT_METHODS = {
     "UPI",
     "CARD",
     "ONLINE",
-    "COD",
 }
+
+def build_payment_metadata(payment_method):
+
+    status = PaymentStatus.PENDING
+    paid_at = None
+    transaction_reference = None
+
+    if payment_method in ONLINE_PAYMENT_METHODS:
+
+        status = PaymentStatus.SUCCESS
+        paid_at = datetime.utcnow()
+        transaction_reference = f"txn_{uuid4().hex}"
+
+    return status, paid_at, transaction_reference
 
 
 async def make_payment(
-        db: AsyncSession,
-        order_id: int,
-        payment: PaymentCreate,
-        current_user: User,
-    ):
+    db: AsyncSession,
+    order_id: int,
+    payment: PaymentCreate,
+    current_user: User,
+):
 
     if current_user.role != UserRole.CUSTOMER:
 
@@ -50,22 +60,24 @@ async def make_payment(
             "Payment creation denied: user ID %s is not a customer",
             current_user.id
         )
+
         raise PermissionDeniedError()
-    
-    order = await get_order_by_id(
+
+    order = await order_repository.get_order_by_id(
         db,
         order_id,
         current_user,
     )
 
-    result = await db.execute(
-        select(Payment)
-        .where(Payment.order_id == order.id)
+    existing_payment = await payment_repository.get_payment_by_order_id(
+        db,
+        order.id,
     )
 
-    existing_payment = result.scalar_one_or_none()
-
-    if existing_payment and existing_payment.status == PaymentStatus.SUCCESS:
+    if (
+        existing_payment and
+        existing_payment.status == PaymentStatus.SUCCESS
+    ):
 
         logger.warning(
             "Payment already completed for order ID %s",
@@ -74,15 +86,9 @@ async def make_payment(
 
         raise PaymentAlreadyCompletedError()
 
-    status = PaymentStatus.PENDING
-    paid_at = None
-    transaction_reference = None
-
-    if payment.payment_method in ONLINE_PAYMENT_METHODS:
-
-        status = PaymentStatus.SUCCESS
-        paid_at = datetime.utcnow()
-        transaction_reference = f"txn_{uuid4().hex}"
+    status, paid_at, transaction_reference = build_payment_metadata(
+        payment.payment_method
+    )
 
     if existing_payment:
 
@@ -105,56 +111,54 @@ async def make_payment(
             transaction_reference=transaction_reference,
         )
 
-        db.add(payment_record)
-
     order.payment_status = status
 
     try:
 
-        await db.commit()
+        async with db.begin():
 
-        await db.refresh(payment_record)
+            payment_record = await payment_repository.save_payment(
+                db,
+                payment_record,
+            )
 
         logger.info(
-            "Payment processed successfully (payment_id=%s, order_id=%s)",
+            "Payment processed successfully "
+            "(payment_id=%s, order_id=%s)",
             payment_record.id,
-            order.id
+            order.id,
         )
 
         return payment_record
 
     except IntegrityError:
 
-        await db.rollback()
+        logger.exception(
+            "Database integrity error while processing payment"
+        )
 
-        logger.exception("Database integrity error while creating payment")
-        raise PaymentNotFoundError()
+        raise DatabaseError()
 
     except Exception:
 
-        await db.rollback()
+        logger.exception(
+            "Unexpected error while processing payment"
+        )
 
-        logger.exception("Unexpected error while creating payment")
         raise DatabaseError()
+    
 
-# Admin only
 async def get_payment_by_id(
         db: AsyncSession,
         payment_id: int,
         current_user: User,
     ):
 
-    statement = (
-        select(Payment)
-        .join(Order, Payment.order_id == Order.id)
-        .where(Payment.id == payment_id)
+    payment = await payment_repository.get_payment_by_id(
+        db,
+        payment_id,
+        current_user
     )
-
-    statement = apply_order_visibility(statement, current_user)
-
-    result = await db.execute(statement)
-
-    payment = result.scalar_one_or_none()
 
     if not payment:
 
@@ -175,21 +179,23 @@ async def get_payment_by_id(
 async def get_payment_by_order_id(
         db: AsyncSession,
         order_id: int,
-        current_user: User,
+        current_user: User
     ):
 
-    order = await get_order_by_id(
+    order = await order_repository.get_order_by_id(
         db,
         order_id,
         current_user,
     )
 
-    result = await db.execute(
-        select(Payment)
-        .where(Payment.order_id == order.id)
-    )
+    if not order:
+        raise OrderNotFoundError()
+    
 
-    payment = result.scalar_one_or_none()
+    payment = await payment_repository.get_payment_by_order_id(
+        db,
+        order_id,
+    )
 
     if not payment:
 
@@ -212,32 +218,15 @@ async def get_all_payments(
         current_user: User,
     ):
 
-    statement = (
-        select(Payment)
-        .join(Order)
-        .order_by(Payment.created_at.desc())
-    )
+    payments = await payment_repository.get_all_payments(
 
-    statement = apply_order_visibility(
-        statement,
+        db,
         current_user
     )
 
-    result = await db.execute(statement)
-
-
-    payments = result.scalars().all()
-
-    if not payments:
-
-        logger.info(
-            "Retrieved %s payments for user ID %s",
-            len(payments),
-            current_user.id
-        )
-    
     logger.info(
-        "All payment seen successfully for user ID %s",
+        "Retrieved %s payments for user ID %s",
+        len(payments),
         current_user.id
     )
 
@@ -249,7 +238,7 @@ async def update_payment_status(
         payment_id: int,
         status: PaymentStatus,
         current_user: User,
-    ):
+   ):
 
     if current_user.role != UserRole.ADMIN:
 
@@ -260,14 +249,10 @@ async def update_payment_status(
         
         raise PermissionDeniedError()
 
-    result = await db.execute(
-        select(Payment)
-        .options(selectinload(Payment.order))
-        .join(Order, Payment.order_id == Order.id)
-        .where(Payment.id == payment_id)
+    payment = await payment_repository.get_payment_for_status_update(
+        db,
+        payment_id
     )
-
-    payment = result.scalar_one_or_none()
 
     if not payment:
 
@@ -305,10 +290,15 @@ async def update_payment_status(
 
     try:
 
-        await db.commit()
+        async with db.begin():
+
+            await payment_repository.save_payment(
+                db,
+                payment,
+            )
 
         await db.refresh(payment)
-
+            
         logger.info(
             "Payment status updated successfully (payment_id=%s, status=%s)",
             payment_id,
@@ -317,16 +307,8 @@ async def update_payment_status(
 
         return payment
 
-    except IntegrityError:
-
-        await db.rollback()
-
-        logger.exception("Database integrity error while updating payment status")
-        raise PaymentNotFoundError()
-
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while updating payment status")
+
         raise DatabaseError()

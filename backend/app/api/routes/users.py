@@ -36,7 +36,6 @@ async def get_user_by_id(
     return await user_service.get_user_by_id(
         db,
         user_id,
-        current_user
     )
 
 

@@ -29,7 +29,7 @@ if ENV == "docker":
 
 elif ENV == "dev":
     DB_HOST = "127.0.0.1"
-    DB_PORT = "3010"
+    DB_PORT = "3306"
 
 else:
     raise ValueError(f"Unknowen ENV: {ENV}")

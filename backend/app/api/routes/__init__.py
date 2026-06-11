@@ -1,5 +1,4 @@
 from .auth import (
-
     sign_up,
     login
 )
@@ -14,13 +13,9 @@ from .delivery_partner import (
     delete_delivery_partner
 )
 
-from .health import (
-
-    health_check
-)
+from .health import health_check
 
 from .menu import (
-
     create_menu_item,
     get_menu_item_by_id,
     get_menu_items_by_restaurant_id,
@@ -30,7 +25,6 @@ from .menu import (
 )
 
 from .notifications import (
-
     get_user_notifications,
     get_notification_by_id,
     mark_notification_as_read,
@@ -41,7 +35,6 @@ from .notifications import (
 )
 
 from .orders import (
-
     create_order,
     update_order_status,
     delete_order_by_id,
@@ -50,7 +43,6 @@ from .orders import (
 )
 
 from .restaurants import (
-
     create_restaurant,
     get_restaurant_by_id,
     update_restaurant,
@@ -59,7 +51,6 @@ from .restaurants import (
 )
 
 from .users import (
-
     get_user_by_id,
     get_all_users,
     get_user_by_email,

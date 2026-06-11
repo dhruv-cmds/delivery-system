@@ -1,11 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.schemas import UserCreate
 
-from app.services.user_service import (
-    create_user,
-    get_user_by_email
-)
+from app.services.user_service import create_user
+
 
 from app.core import (
 
@@ -14,8 +10,12 @@ from app.core import (
 
     UserNotFoundError,
     InvalidCredentialsError,
+
     logger
 )
+
+from app.repositories import user_repository
+
 
 async def sign_up(db, user: UserCreate):
 
@@ -29,10 +29,7 @@ async def login(
 
     try:
 
-        user = await get_user_by_email(
-            db,
-            email,
-        )
+        user = await user_repository.get_user_by_email(db,email)
 
     except UserNotFoundError:
 

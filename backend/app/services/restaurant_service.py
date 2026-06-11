@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Restaurant, User
 from app.schemas import RestaurantCreate
 from app.services import notification_service
+from app.repositories import restaurant_repository
 
 from app.core import (
 
@@ -44,14 +45,19 @@ async def create_restaurant(
         owner_id=current_user.id,
     )
 
+
+
     try:
-        db.add(new_restaurant)
 
-        if current_user.role == UserRole.CUSTOMER:
+        async with db.begin():
 
-            current_user.role = UserRole.RESTAURANT_OWNER
-          
-        await db.commit()
+            if current_user.role == UserRole.CUSTOMER:
+                current_user.role = UserRole.RESTAURANT_OWNER
+
+            new_restaurant = await restaurant_repository.persist_restaurant(
+                db,
+                new_restaurant,
+            )
 
         await notification_service.create_notification(
 
@@ -60,8 +66,6 @@ async def create_restaurant(
             message="Your restaurant has been created successfully.",
             notification_type=NotificationType.SYSTEM
         )
-
-        await db.refresh(new_restaurant)
 
         logger.info(
             "Restaurant created successfully (restaurant_id=%s, owner_id=%s)",
@@ -91,13 +95,10 @@ async def get_restaurant_by_id(
         restaurant_id: int,
     ):
 
-
-    result = await db.execute(
-        select(Restaurant)
-        .where(Restaurant.id == restaurant_id)
+    restaurant = await restaurant_repository.get_restaurant_by_id(
+        db,
+        restaurant_id
     )
-
-    restaurant = result.scalar_one_or_none()
 
     if not restaurant:
 
@@ -117,10 +118,19 @@ async def update_restaurant(
         current_user: User,
     ):
 
-    restaurant = await get_restaurant_by_id(
+    restaurant = await restaurant_repository.get_restaurant_by_id(
         db,
         restaurant_id,
     )
+
+    if not restaurant:
+
+        logger.warning(
+            "Restaurant not found (restaurant_id=%s)",
+            restaurant_id,
+        )
+
+        raise RestaurantNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN and
@@ -138,7 +148,11 @@ async def update_restaurant(
     restaurant.address = restaurant_data.address
 
     try:
-        await db.commit()
+
+        restaurant = await restaurant_repository.persist_restaurant(
+            db,
+            restaurant,
+        )
 
         await notification_service.create_notification(
             db=db,
@@ -147,7 +161,6 @@ async def update_restaurant(
             notification_type=NotificationType.SYSTEM
         )
 
-        await db.refresh(restaurant)
 
         logger.info(
             "Restaurant updated successfully (restaurant_id=%s)",
@@ -170,6 +183,7 @@ async def update_restaurant(
         logger.exception("Unexpected error while updating restaurant")
         raise DatabaseError()
 
+
 async def update_restaurant_status(
         db: AsyncSession,
         restaurant_id: int,
@@ -177,10 +191,19 @@ async def update_restaurant_status(
         current_user: User
     ):
     
-    restaurant = await get_restaurant_by_id(
+    restaurant = await restaurant_repository.get_restaurant_by_id(
         db,
         restaurant_id
     )
+
+    if not restaurant:
+
+        logger.warning(
+            "Restaurant not found (restaurant_id=%s)",
+            restaurant_id,
+        )
+
+        raise RestaurantNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN and
@@ -208,20 +231,23 @@ async def update_restaurant_status(
 
     try:
 
-        await db.commit()
+        async with db.begin():
 
-        message = RESTAURANT_STATUS_MESSAGES.get(status)
-
-        if message:
-
-            await notification_service.create_notification(
-                db=db,
-                user_id=restaurant.owner_id,
-                message=message,
-                notification_type=NotificationType.SYSTEM
+            restaurant = await restaurant_repository.persist_restaurant(
+                db,
+                restaurant,
             )
 
-        await db.refresh(restaurant)
+            message = RESTAURANT_STATUS_MESSAGES.get(status)
+
+            if message:
+
+                await notification_service.create_notification(
+                    db=db,
+                    user_id=restaurant.owner_id,
+                    message=message,
+                    notification_type=NotificationType.SYSTEM
+                )
 
         logger.info(
             "Restaurant status updated successfully (restaurant_id=%s, status=%s)",
@@ -232,8 +258,6 @@ async def update_restaurant_status(
         return restaurant
 
     except Exception:
-
-        await db.rollback()
 
         logger.exception(
             "Unexpected error while updating restaurant status"
@@ -249,10 +273,19 @@ async def delete_restaurant_by_id(
     ):
 
 
-    restaurant = await get_restaurant_by_id(
+    restaurant = await restaurant_repository.get_restaurant_by_id(
         db,
         restaurant_id,
     )
+
+    if not restaurant:
+
+        logger.warning(
+            "Restaurant not found (restaurant_id=%s)",
+            restaurant_id,
+        )
+
+        raise RestaurantNotFoundError()
 
     if (
         current_user.role != UserRole.ADMIN and
@@ -269,16 +302,20 @@ async def delete_restaurant_by_id(
 
     try:
 
-        await db.delete(restaurant)
+        async with db.begin():
 
-        await db.commit()
+        
+            await restaurant_repository.delete_restaurant(
+                db,
+                restaurant,
+            )
 
-        await notification_service.create_notification(
-            db=db,
-            user_id=restaurant.owner_id,
-            message="Your restaurant has been removed.",
-            notification_type=NotificationType.SYSTEM
-        )
+            await notification_service.create_notification(
+                db=db,
+                user_id=restaurant.owner_id,
+                message="Your restaurant has been removed.",
+                notification_type=NotificationType.SYSTEM
+            )
 
         logger.info(
             "Restaurant deleted successfully (restaurant_id=%s)",
@@ -289,8 +326,7 @@ async def delete_restaurant_by_id(
 
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while deleting restaurant")
+        
         raise DatabaseError()
     

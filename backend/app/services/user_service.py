@@ -11,34 +11,25 @@ from app.core import (
 
 from sqlalchemy.exc  import IntegrityError
 
-from sqlalchemy import select, or_
-
 from app.db.models import User
 
 from app.schemas import UserCreate
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories import user_repository
 
 async def create_user(
         db: AsyncSession, 
         user: UserCreate
     ):
     
-    result = await db.execute(
-        select(User)
-        .where(
-            or_(
-                (User.username == user.username.lower()),
-                (User.phone == user.phone),
-                (User.email == user.email.lower())
-            ),
-        )
+    existing_user = await user_repository.find_existing_user(
+        db,
+        user
     )
 
-    exist = result.scalar_one_or_none()
-
-    if exist:
+    if existing_user:
 
         logger.warning(
             "User already exists (email=%s)",
@@ -58,9 +49,9 @@ async def create_user(
 
     try:
 
-        db.add(new_user)
+        async with db.begin():
 
-        await db.commit()
+            db.add(new_user)
 
         await db.refresh(new_user)
 
@@ -73,31 +64,26 @@ async def create_user(
     
     except IntegrityError:
 
-        await db.rollback()
-
         logger.exception("Database integrity error while creating user")
 
         raise UserAlreadyExistsError()
     
     except Exception:
-        
-        await db.rollback()
 
         logger.exception("Unexpected error while creating user account")
 
         raise DatabaseError()
     
+
 async def get_user_by_id(
         db: AsyncSession,
         user_id: int,
     ):
 
-    result = await db.execute(
-        select(User)
-        .where(User.id == user_id)
+    user = await user_repository.get_user_by_id(
+        db,
+        user_id
     )
-
-    user = result.scalar_one_or_none()
 
     if not user:
 
@@ -119,27 +105,25 @@ async def get_all_users(
         db: AsyncSession,
     ):
 
-    result = await db.execute(
-        select(User)
+    result = await user_repository.get_all_users(
+        db
     )
 
     logger.info(
         "All users retrieved successfully"
     )
     
-    return result.scalars().all()
+    return result
     
 async def get_user_by_email(
-        db: AsyncSession,
+        db,
         user_email: str,
     ):  
 
-    result = await db.execute(
-        select(User)
-        .where(User.email == user_email)
+    user = await user_repository.get_user_by_email(
+        db,
+        user_email 
     )
-
-    user = result.scalar_one_or_none()
 
     if not user:
 
@@ -153,7 +137,7 @@ async def get_user_by_email(
     logger.info(
 
         "User retrieved successfully (email=%s)",
-        user_email
+        user.email
     )
 
     return user
@@ -163,12 +147,10 @@ async def get_user_by_username(
         username: str
     ):
 
-    result = await db.execute(
-        select(User)
-        .where(User.username == username)
+    user = await user_repository.get_user_by_username(
+        db,
+        username
     )
-    
-    user = result.scalar_one_or_none()
 
     if not user:
 
@@ -177,11 +159,11 @@ async def get_user_by_username(
             username
         )
         
-        return None
+        return UserNotFoundError()
 
     logger.info(
         "User retrieved successfully (username=%s)",
-        username
+        user.username
     )
 
     return user

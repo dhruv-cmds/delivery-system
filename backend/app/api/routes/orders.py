@@ -9,7 +9,9 @@ from app.schemas import (
     OrderResponse,
 )
 
-from app.services import order_service, order_query_service
+from app.services import order_service
+
+from app.repositories import order_repository
 
 from app.core import limiter, OrderStatus
 
@@ -102,7 +104,7 @@ async def get_menu_item_for_order(
         current_user=Depends(get_access_manager)
     ):
 
-    return await order_query_service.get_menu_item_for_order(
+    return await order_repository.get_menu_item_for_order(
         db,
         menu_item_id,
     )
@@ -121,7 +123,7 @@ async def get_all_orders(
         db: AsyncSession = Depends(get_db)
     ):
 
-    return await order_query_service.get_all_orders(
+    return await order_service.get_all_orders(
         db,
         current_user
     )
@@ -141,7 +143,7 @@ async def get_order_by_id(
         db: AsyncSession = Depends(get_db)
     ):
 
-    return await order_query_service.get_order_by_id(
+    return await order_repository.get_order_by_id(
         db,
         order_id,
         current_user

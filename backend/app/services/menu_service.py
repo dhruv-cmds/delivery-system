@@ -1,12 +1,9 @@
-from sqlalchemy import select, and_
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
 
     User,
     Menu,
-    Restaurant
 )
 
 from app.schemas import MenuCreate
@@ -29,6 +26,7 @@ from app.core import (
     RestaurantNotFoundError
 )
 
+from app.repositories import  menu_repository
 
 async def create_menu_item(
         db: AsyncSession,
@@ -36,12 +34,10 @@ async def create_menu_item(
         current_user: User
     ):
 
-    restaurant_result = await db.execute(
-        select(Restaurant)
-        .where(Restaurant.id == menu.restaurant_id)
+    restaurant = await menu_repository.get_restaurant_by_id(
+        db,
+        menu.restaurant_id
     )
-
-    restaurant = restaurant_result.scalar_one_or_none()
 
     if not restaurant:
 
@@ -65,18 +61,11 @@ async def create_menu_item(
         raise PermissionDeniedError()
 
     
-    result = await db.execute(
-
-        select(Menu)
-        .where(
-            and_(
-                (Menu.restaurant_id == menu.restaurant_id),
-                (Menu.item_name == menu.item_name)
-            ),
-        )
+    existing_menu = await menu_repository.get_menu_by_name(
+        db,
+        menu.restaurant_id,
+        menu.item_name
     )
-
-    existing_menu = result.scalar_one_or_none()
 
     if existing_menu:
 
@@ -99,9 +88,9 @@ async def create_menu_item(
 
     try:
 
-        db.add(new_menu)
+        async with db.begin():
 
-        await db.commit()
+            db.add(new_menu)
 
         await db.refresh(new_menu)
 
@@ -114,16 +103,16 @@ async def create_menu_item(
 
     except IntegrityError:
 
-        await db.rollback()
+        logger.exception(
+            "Database integrity error while creating menu item"
+        )
 
-        logger.exception("Database integrity error while creating menu item")
         raise MenuAlreadyExistsError()
     
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while creating menu item")
+
         raise DatabaseError()
     
     
@@ -132,12 +121,10 @@ async def get_menu_item_by_id (
         menu_id: int,
     ):
 
-    result = await db.execute(
-        select(Menu)
-        .where(Menu.id == menu_id)
+    menu = await menu_repository.get_menu_by_id(
+        db,
+        menu_id
     )
-
-    menu = result.scalar_one_or_none()
 
     if not menu:
 
@@ -155,13 +142,10 @@ async def get_menu_items_by_restaurant_id(
         restaurant_id: int
     ):
 
-    result = await db.execute(
-
-        select(Menu)
-        .where(Menu.restaurant_id == restaurant_id)
+    return await menu_repository.get_menu_by_restaurant_id(
+        db,
+        restaurant_id
     )
-
-    return result.scalars().all()
     
 
 async def update_menu_item(
@@ -171,15 +155,18 @@ async def update_menu_item(
         current_user: User
     ):
 
-    menu = await get_menu_item_by_id(db, menu_id)
+    menu = await menu_repository.get_menu_by_id(db, menu_id)
 
-    restaurant_result = await db.execute(
+    if not menu:
 
-        select(Restaurant)
-        .where(Restaurant.id == menu.restaurant_id)
-    )
+        logger.warning(
+            "Menu item not found (menu_id=%s)",
+            menu_id
+        )
 
-    restaurant = restaurant_result.scalar_one_or_none()
+        raise MenuNotFoundError()
+
+    restaurant = await menu_repository.get_restaurant_by_id(db, menu.restaurant_id)
 
     if not restaurant:
 
@@ -202,8 +189,23 @@ async def update_menu_item(
 
         raise PermissionDeniedError()
     
+    existing_menu = await menu_repository.get_menu_by_name(
+        db,
+        restaurant.id,
+        menu_data.item_name
+    )
 
-    menu.restaurant_id = menu_data.restaurant_id
+    if existing_menu and existing_menu.id != menu.id:
+
+        logger.warning(
+            "Menu item already exists (restaurant_id=%s, item_name='%s')",
+            restaurant.id,
+            menu_data.item_name
+        )
+
+        raise MenuAlreadyExistsError()
+    
+
     menu.item_name = menu_data.item_name
     menu.description = menu_data.description
     menu.price = menu_data.price
@@ -249,14 +251,21 @@ async def delete_menu_item(
         current_user: User
     ):
 
-    menu = await get_menu_item_by_id(db, menu_id)
+    menu = await menu_repository.get_menu_by_id(db, menu_id)
 
-    restaurant_result = await db.execute (
-        select(Restaurant)
-        .where(Restaurant.id == menu.restaurant_id)
+    if not menu:
+
+        logger.warning(
+            "Menu item not found (menu_id=%s)",
+            menu_id
+        )
+
+        raise MenuNotFoundError()
+
+    restaurant = await menu_repository.get_restaurant_by_id(
+        db,
+        menu.restaurant_id
     )
-
-    restaurant = restaurant_result.scalar_one_or_none()
 
     if not restaurant:
 
@@ -275,24 +284,23 @@ async def delete_menu_item(
         )
         raise PermissionDeniedError()
     
+    try:   
 
-    try:
+        async with db.begin():
 
-        await db.delete(menu)
-
-        await db.commit()
+            await db.delete(menu)
 
         logger.info(
             "Menu item deleted successfully (menu_id=%s)",
             menu.id
         )
+
         return menu
     
     except Exception:
 
-        await db.rollback()
-
         logger.exception("Unexpected error while deleting menu item")
+
         raise DatabaseError()
 
 
@@ -304,14 +312,21 @@ async def change_menu_status(
         current_user: User
     ):
 
-    menu = await get_menu_item_by_id(db, menu_id)
+    menu = await menu_repository.get_menu_by_id(db, menu_id)
 
-    restaurant_result = await db.execute(
-        select(Restaurant)
-        .where(Restaurant.id == menu.restaurant_id)
+    if not menu:
+
+        logger.warning(
+            "Menu item not found (menu_id=%s)",
+            menu_id
+        )
+
+        raise MenuNotFoundError()
+    
+    restaurant = await menu_repository.get_restaurant_by_id(
+        db,
+        menu.restaurant_id
     )
-
-    restaurant = restaurant_result.scalar_one_or_none()
 
     if not restaurant:
 

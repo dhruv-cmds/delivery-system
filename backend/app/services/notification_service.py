@@ -6,6 +6,8 @@ from app.core import NotificationType, NotificationStatus
 
 from app.db.models import Notification, User
 
+from app.repositories import notification_repository
+
 from app.core import (
     
     logger,
@@ -33,9 +35,12 @@ async def create_notification (
 
     try:
 
-        db.add(notification)
-
-        await db.commit()
+        async with db.begin():
+    
+            notification = await notification_repository.create_notification(
+                db,
+                notification
+            )
 
         await db.refresh(notification)
 
@@ -48,8 +53,6 @@ async def create_notification (
         return notification
         
     except Exception:
-
-        await db.rollback()
 
         logger.exception("Unexpected error while creating notification")
 
@@ -84,7 +87,7 @@ async def get_notification_by_id(
                 (Notification.user_id == current_user.id)
             )
         )
-    )
+)
 
     notification = result.scalar_one_or_none()
 
