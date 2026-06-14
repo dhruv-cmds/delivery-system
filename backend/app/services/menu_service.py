@@ -88,11 +88,13 @@ async def create_menu_item(
 
     try:
 
-        async with db.begin():
-
-            db.add(new_menu)
+        db.add(new_menu)
+        
+        await db.flush()
 
         await db.refresh(new_menu)
+
+        await db.commit()
 
         logger.info(
             "Menu item created successfully (menu_id=%s)",
@@ -103,6 +105,8 @@ async def create_menu_item(
 
     except IntegrityError:
 
+        await db.rollback()
+
         logger.exception(
             "Database integrity error while creating menu item"
         )
@@ -110,6 +114,8 @@ async def create_menu_item(
         raise MenuAlreadyExistsError()
     
     except Exception:
+        
+        await db.rollback()
 
         logger.exception("Unexpected error while creating menu item")
 
@@ -286,10 +292,10 @@ async def delete_menu_item(
     
     try:   
 
-        async with db.begin():
+        await db.delete(menu)
 
-            await db.delete(menu)
-
+        await db.commit()
+        
         logger.info(
             "Menu item deleted successfully (menu_id=%s)",
             menu.id
@@ -298,6 +304,8 @@ async def delete_menu_item(
         return menu
     
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while deleting menu item")
 

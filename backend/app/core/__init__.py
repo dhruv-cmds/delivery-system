@@ -59,6 +59,8 @@ from .exceptions import (
     NotificationNotFoundError,
     
     InvalidOperationError,
+
+    InvalidLongitudeError
 )
 
 from .limiter import limiter

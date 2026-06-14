@@ -50,6 +50,11 @@ from .restaurants import (
     delete_restaurant_by_id
 )
 
+from .tracking import (
+    create_tracking,
+    get_tracking_by_order,
+)
+
 from .users import (
     get_user_by_id,
     get_all_users,

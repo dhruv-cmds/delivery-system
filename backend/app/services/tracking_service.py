@@ -1,48 +1,52 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import OrderTracking
+from app.db.models import OrderTracking, User
+
 from app.core import (
     DatabaseError,
-    logger
+    InvalidLongitudeError,
+    OrderNotFoundError,
+    PermissionDeniedError,
+    UserRole,
 
+    logger
 )
 
+from app.repositories import traking_repository
+from app.schemas import TrackingCreate
 
+#  only res owners can admin can make order traking service then share wiht use through notification or link (only admin can do rn)
 async def create_tracking(
         db: AsyncSession,
-        order_id: int,
-        latitude,
-        longitude,
+        tracking: TrackingCreate
     ):
     
-    if latitude < -90 or latitude > 90:
-        raise # InvalidLatitudeError()
+    if tracking.latitude < -90 or tracking.latitude > 90:
+        raise  InvalidLongitudeError()
 
-    if longitude < -180 or longitude > 180:
-        raise  # InvalidLongitudeError()
-
-
-    tracking = OrderTracking(
-        order_id=order_id,
-        latitude=latitude,
-        longitude=longitude,
+    if tracking.longitude < -180 or tracking.longitude > 180:
+        raise  InvalidLongitudeError()
+    
+    new_tracking = OrderTracking(
+        order_id=tracking.order_id,
+        latitude=tracking.latitude,
+        longitude=tracking.longitude,
     )
 
     try:
         
-        db.add(tracking)
+        db.add(new_tracking)
 
         await db.commit()
-
-        await db.refresh(tracking)
         
+        await db.refresh(new_tracking)
+
         logger.info(
             "Order tracking created successfully (order_id=%s)",
-            order_id
+            tracking.order_id
         )
         
-        return tracking
+        return new_tracking
 
     except Exception:
 
@@ -57,17 +61,45 @@ async def create_tracking(
 async def get_tracking_by_order(
         db: AsyncSession,
         order_id: int,
+        current_user: User
     ):
-
-    result = await db.execute(
-        select(OrderTracking)
-        .where(OrderTracking.order_id == order_id)
-        .order_by(OrderTracking.created_at.desc())
+         
+    tracking = await traking_repository.get_tracking_order(
+        db,
+        order_id
     )
 
+    if not tracking:
+
+        logger.warning(
+
+            "Traking not found by (order_id=%s)",
+            order_id
+        )
+
+        raise OrderNotFoundError()
+    
+    if (
+         current_user.role != UserRole.ADMIN
+         and tracking.order.customer_id != current_user.id 
+    ):
+        
+        logger.warning(
+            "Traking for order denied: user ID %s is not the owner of order",
+            current_user.id
+        )
+         
+        raise PermissionDeniedError()
+    
     logger.info(
         "Order tracking retrieved successfully (order_id=%s)",
         order_id
     )
 
-    return result.scalars().all()
+    return tracking
+
+async def get_all_tracking (
+        db: AsyncSession,
+    ):
+
+    return await traking_repository.get_all_traking(db)

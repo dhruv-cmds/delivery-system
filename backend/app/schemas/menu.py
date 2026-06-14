@@ -10,6 +10,7 @@ from app.core import MenuStatus
 # common/shared fields
 class MenuBase(BaseModel):
 
+    restaurant_id: int = Field(..., examples=["1", "2" , "3"])
     item_name: str = Field(..., examples=["pizza", "burger", "cold drinks"])
     description: str | None = Field(None, examples=["Cheese pizza with extra toppings"])
     price: Decimal = Field(..., examples=[499.00, 599.00, 999.00])
@@ -24,7 +25,6 @@ class MenuCreate(MenuBase):
 # FastAPI returns this to frontend
 class MenuResponse(MenuBase):
 
-    restaurant_id: int = Field(..., examples=["1", "2" , "3"])
     id: int = Field(..., examples=[24])
     status: MenuStatus = Field(..., examples=[MenuStatus.AVAILABLE])
 

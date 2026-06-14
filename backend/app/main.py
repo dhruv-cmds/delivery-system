@@ -15,6 +15,7 @@ from app.api.routes import (
     orders,
     payment,
     restaurants,
+    tracking,
     users,
 )
 
@@ -96,6 +97,10 @@ app = FastAPI(
             "description": "Payment creation."
         },
         {
+            "name": "ORDER TRACKING",
+            "description": "Order creation and track where is your order by order id."
+        },
+        {
             "name": "DELIVERY PARTNER",
             "description": "Delivery partner registration, profile management, and location updates."
         },
@@ -140,5 +145,7 @@ app.include_router(payment.router, prefix="/api")
 
 app.include_router(restaurants.public_router, prefix="/api")
 app.include_router(restaurants.router, prefix="/api")
+
+app.include_router(tracking.router, prefix="/api")
 
 app.include_router(users.router, prefix="/api")

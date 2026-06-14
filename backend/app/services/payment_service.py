@@ -48,7 +48,7 @@ def build_payment_metadata(payment_method):
 
     return status, paid_at, transaction_reference
 
-
+#  rn delviered order status sucessfull still money can debit form them (means after order recive still make payment)
 async def make_payment(
     db: AsyncSession,
     order_id: int,
@@ -126,12 +126,12 @@ async def make_payment(
 
     try:
 
-        async with db.begin():
+        payment_record = await payment_repository.save_payment(
+            db,
+            payment_record,
+        )
 
-            payment_record = await payment_repository.save_payment(
-                db,
-                payment_record,
-            )
+        await db.commit()
 
         logger.info(
             "Payment processed successfully "
@@ -144,6 +144,8 @@ async def make_payment(
 
     except IntegrityError:
 
+        await db.rollback()
+
         logger.exception(
             "Database integrity error while processing payment"
         )
@@ -151,6 +153,8 @@ async def make_payment(
         raise DatabaseError()
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception(
             "Unexpected error while processing payment"
@@ -306,14 +310,13 @@ async def update_payment_status(
 
     try:
 
-        async with db.begin():
 
-            await payment_repository.save_payment(
-                db,
-                payment,
-            )
+        await payment_repository.save_payment(
+            db,
+            payment,
+        )
 
-            await db.refresh(payment)
+        await db.commit()
             
         logger.info(
             "Payment status updated successfully (payment_id=%s, status=%s)",
@@ -324,6 +327,8 @@ async def update_payment_status(
         return payment
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while updating payment status")
 

@@ -30,14 +30,14 @@ async def create_notification(
 
     try:
 
-        async with db.begin():
-
-            notification = (
-                await notification_repository.create_notification(
-                    db,
-                    notification,
-                )
+        notification = (
+            await notification_repository.create_notification(
+                db,
+                notification,
             )
+        )
+
+        await db.commit()
 
         await db.refresh(notification)
 
@@ -51,6 +51,8 @@ async def create_notification(
 
     except Exception:
 
+        await db.rollback()
+        
         logger.exception(
             "Unexpected error while creating notification"
         )
@@ -124,13 +126,13 @@ async def mark_notification_as_read(
 
     try:
 
-        async with db.begin():
-
-            notification.status = (
-                NotificationStatus.READ
-            )
+        notification.status = (
+            NotificationStatus.READ
+        )
 
         await db.refresh(notification)
+
+        await db.commit()
 
         return notification
 
@@ -144,21 +146,21 @@ async def mark_notification_as_read(
 
 
 async def mark_all_notifications_as_read(
-    db: AsyncSession,
-    current_user: User,
-):
+        db: AsyncSession,
+        current_user: User,
+    ):
 
     try:
 
-        async with db.begin():
-
-            await (
-                notification_repository
-                .mark_all_notifications_as_read(
-                    db,
-                    current_user,
-                )
+        await (
+            notification_repository
+            .mark_all_notifications_as_read(
+                db,
+                current_user,
             )
+        )
+
+        await db.commit()
 
         logger.info(
             "All notifications marked as read "
@@ -174,6 +176,8 @@ async def mark_all_notifications_as_read(
 
     except Exception:
 
+        await db.rollback()
+
         logger.exception(
             "Unexpected error while marking "
             "all notifications as read"
@@ -183,14 +187,13 @@ async def mark_all_notifications_as_read(
 
 
 async def delete_notification(
-    db: AsyncSession,
-    notification_id: int,
-    current_user: User,
-):
+        db: AsyncSession,
+        notification_id: int,
+        current_user: User,
+    ):
 
     notification = (
-        await notification_repository
-        .get_notification_by_id(
+        await notification_repository.get_notification_by_id(
             db,
             notification_id,
             current_user,
@@ -211,12 +214,12 @@ async def delete_notification(
 
     try:
 
-        async with db.begin():
+        await notification_repository.delete_notification(
+            db,
+            notification_id,
+        )
 
-            await notification_repository.delete_notification(
-                db,
-                notification_id,
-            )
+        db.commit()
 
         logger.info(
             "Notification deleted successfully "
@@ -228,6 +231,8 @@ async def delete_notification(
 
     except Exception:
 
+        await db.rollback()
+        
         logger.exception(
             "Unexpected error while deleting "
             "notification"
@@ -260,18 +265,7 @@ async def get_all_notifications(
 async def get_notifications_by_user_id(
     db: AsyncSession,
     user_id: int,
-    current_user: User,
 ):
-
-    if current_user.role != UserRole.ADMIN:
-
-        logger.warning(
-            "User notification access denied: "
-            "user ID %s is not an administrator",
-            current_user.id,
-        )
-
-        raise PermissionDeniedError()
 
     return await (
         notification_repository

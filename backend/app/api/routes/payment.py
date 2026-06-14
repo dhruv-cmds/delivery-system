@@ -129,10 +129,10 @@ async def get_payment_by_order_id(
     "/payment/{payment_id}/status",
     response_model=PaymentResponse,
     summary=(
-        "Get all payments information"
+        "Get payment information"
     ),
     description=(
-        "Only authenticate user can get only their payment details order id"
+        "Only admin can chagne payment details by payment id"
     )
 )
 @limiter.limit("20/minute")

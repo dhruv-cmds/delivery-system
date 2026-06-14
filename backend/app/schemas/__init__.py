@@ -51,6 +51,12 @@ from .restaurant import (
     RestaurantResponse,
 )
 
+from .tracking import (
+    TrackingBase,
+    TrackingCreate,
+    TrackingResponse
+)
+
 from .user import (
     UserBase,
     UserCreate,

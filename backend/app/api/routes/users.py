@@ -23,7 +23,7 @@ router = APIRouter(
     "/{user_id}",
     response_model=UserResponse,
     summary="Get user by ID",
-    description="Retrieve a user by their ID."
+    description="Retrieve a user by their ID Only admin can access."
 )
 @limiter.limit("60/minute")
 async def get_user_by_id(
@@ -43,7 +43,7 @@ async def get_user_by_id(
     "/",
     response_model=list[UserResponse],
     summary="Get all users",
-    description="Retrieve all registered users."
+    description="Retrieve all registered users. Only admin can access"
 )
 @limiter.limit("30/minute")
 async def get_all_users(
@@ -59,7 +59,7 @@ async def get_all_users(
     "/email/{user_email}",
     response_model=UserResponse,
     summary="Get user by email",
-    description="Retrieve a user by their email address."
+    description="Retrieve a user by their email address. Only admin can access"
 )
 @limiter.limit("60/minute")
 async def get_user_by_email(
@@ -79,7 +79,7 @@ async def get_user_by_email(
     "/username/{username}",
     response_model=UserResponse,
     summary="Get user by username",
-    description="Retrieve a user by their username."
+    description="Retrieve a user by their username. Only admin can access"
 )
 @limiter.limit("60/minute")
 async def get_user_by_username(

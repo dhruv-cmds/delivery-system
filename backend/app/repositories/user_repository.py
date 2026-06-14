@@ -67,7 +67,7 @@ async def get_user_by_username(
 
     result = await db.execute(
         select(User)
-        .where(User.username == username)
+        .where(User.username == username.strip())
     )
     
     return result.scalar_one_or_none()

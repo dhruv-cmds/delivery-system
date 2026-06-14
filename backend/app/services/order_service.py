@@ -13,6 +13,7 @@ from app.core import (
     OrderStatus,
     MenuStatus,
     NotificationType,
+    MenuNotFoundError,
 
     MAX_ORDER_TIMES,
     MAX_TRANSFER_LIMIT,
@@ -138,33 +139,39 @@ async def create_order(
 
     try:
 
-        async with db.begin():
 
-            new_order = await order_repository.create_order(
-                db,
-                new_order
-            )
-                
-            await notification_service.create_notification(
-                db=db,
-                user_id=current_user.id,
-                message="Your order has been placed successfully.",
-                notification_type=NotificationType.ORDER_UPDATE
-            )
+        new_order = await order_repository.create_order(
+            db,
+            new_order
+        )
+            
+        await notification_service.create_notification(
+            db=db,
+            user_id=current_user.id,
+            message="Your order has been placed successfully.",
+            notification_type=NotificationType.ORDER_UPDATE
+        )
+        
+        await db.commit()
 
-            logger.info(
-                "Notification created successfully for (order_id=%s, customer_id=%s)",
-                new_order.id,
-                current_user.id
-            )
+
+        logger.info(
+            "Notification created successfully for (order_id=%s, customer_id=%s)",
+            new_order.id,
+            current_user.id
+        )
             
     except IntegrityError:
+
+        await db.rollback()
 
         logger.exception("Database integrity error while creating order")
 
         raise OrderItemNotFoundError()
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while creating order")
         
@@ -307,13 +314,13 @@ async def delete_order_by_id(
 
     try:
 
-        async with db.begin():
+        await order_repository.delete_order(
+            db,
+            order
+        )
 
-            await order_repository.delete_order(
-                db,
-                order
-            )
-
+        await db.commit()
+        
         logger.info(
             "Order deleted successfully (order_id=%s)",
             order_id
@@ -323,11 +330,15 @@ async def delete_order_by_id(
 
     except IntegrityError:
 
+        await db.rollback()
+
         logger.exception("Database integrity error while deleting order")
 
         raise OrderNotFoundError()
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while deleting order")
 
@@ -381,3 +392,24 @@ async def get_order_by_id (
     )
 
     return order
+
+async def get_order_by_menu_id(
+        
+        db: AsyncSession,
+        menu_id: int
+    ):
+
+    result = await order_repository.get_menu_item_for_order(
+        db,
+        menu_id
+    )
+
+    if not result:
+
+        logger.warning(
+            "Order not found by menu ID %s",
+            menu_id
+        )
+        raise MenuNotFoundError()
+    
+    return result

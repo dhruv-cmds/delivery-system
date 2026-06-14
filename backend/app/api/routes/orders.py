@@ -90,7 +90,7 @@ async def delete_order_by_id(
     )
 
 
-#  direct repo call it should be service
+#  it is only admin and res owner for 
 @router.get(
     "/menu_item/{menu_item_id}",
     response_model=MenuResponse,
@@ -105,9 +105,28 @@ async def get_menu_item_for_order(
         current_user=Depends(get_access_manager)
     ):
 
-    return await order_repository.get_menu_item_for_order(
+    return await order_service.get_order_by_menu_id(
         db,
         menu_item_id,
+    )
+
+
+@router.get(
+    "/order/all",
+    response_model=list[OrderResponse],
+    summary="Get all orders",
+    description="Retrieve all orders visible to the authenticated user."
+)
+@limiter.limit("30/minute")
+async def get_all_orders(
+        request: Request,
+        current_user=Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+    ):
+
+    return await order_service.get_all_orders(
+        db,
+        current_user
     )
 
 
@@ -128,24 +147,5 @@ async def get_order_by_id(
     return await order_service.get_order_by_id(
         db,
         order_id,
-        current_user
-    )
-
-
-@router.get(
-    "/order/all",
-    response_model=list[OrderResponse],
-    summary="Get all orders",
-    description="Retrieve all orders visible to the authenticated user."
-)
-@limiter.limit("30/minute")
-async def get_all_orders(
-        request: Request,
-        current_user=Depends(get_current_user),
-        db: AsyncSession = Depends(get_db)
-    ):
-
-    return await order_service.get_all_orders(
-        db,
         current_user
     )

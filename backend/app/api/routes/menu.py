@@ -43,7 +43,7 @@ async def create_menu_item(
         current_user
     )
 
-
+#  it should be only for admin or res.. owner for checking but rn anyone can access
 @public_router.get(
     "/{menu_id}",
     response_model=MenuResponse,

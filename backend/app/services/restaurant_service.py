@@ -45,19 +45,15 @@ async def create_restaurant(
         owner_id=current_user.id,
     )
 
-
-
     try:
+        
+        if current_user.role == UserRole.CUSTOMER:
+            current_user.role = UserRole.RESTAURANT_OWNER
 
-        async with db.begin():
-
-            if current_user.role == UserRole.CUSTOMER:
-                current_user.role = UserRole.RESTAURANT_OWNER
-
-            new_restaurant = await restaurant_repository.persist_restaurant(
-                db,
-                new_restaurant,
-            )
+        new_restaurant = await restaurant_repository.persist_restaurant(
+            db,
+            new_restaurant,
+        )
 
         await notification_service.create_notification(
 
@@ -66,6 +62,8 @@ async def create_restaurant(
             message="Your restaurant has been created successfully.",
             notification_type=NotificationType.SYSTEM
         )
+
+        await db.commit()
 
         logger.info(
             "Restaurant created successfully (restaurant_id=%s, owner_id=%s)",
@@ -77,15 +75,18 @@ async def create_restaurant(
 
     except IntegrityError:
 
+        await db.rollback()
+
         logger.exception("Database integrity error while creating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
         
+        await db.rollback()
+
         logger.exception("Unexpected error while creating restaurant")
         raise DatabaseError()
-
-
+    
 async def get_restaurant_by_id(
         db: AsyncSession,
         restaurant_id: int,
@@ -223,23 +224,23 @@ async def update_restaurant_status(
 
     try:
 
-        async with db.begin():
+        restaurant = await restaurant_repository.persist_restaurant(
+            db,
+            restaurant,
+        )
 
-            restaurant = await restaurant_repository.persist_restaurant(
-                db,
-                restaurant,
+        message = RESTAURANT_STATUS_MESSAGES.get(status)
+
+        if message:
+
+            await notification_service.create_notification(
+                db=db,
+                user_id=restaurant.owner_id,
+                message=message,
+                notification_type=NotificationType.SYSTEM
             )
 
-            message = RESTAURANT_STATUS_MESSAGES.get(status)
-
-            if message:
-
-                await notification_service.create_notification(
-                    db=db,
-                    user_id=restaurant.owner_id,
-                    message=message,
-                    notification_type=NotificationType.SYSTEM
-                )
+        await db.commit()
 
         logger.info(
             "Restaurant status updated successfully (restaurant_id=%s, status=%s)",
@@ -250,6 +251,8 @@ async def update_restaurant_status(
         return restaurant
 
     except Exception:
+
+        await db.refresh()
 
         logger.exception(
             "Unexpected error while updating restaurant status"
@@ -294,20 +297,20 @@ async def delete_restaurant_by_id(
 
     try:
 
-        async with db.begin():
-
         
-            await restaurant_repository.delete_restaurant(
-                db,
-                restaurant,
-            )
+        await restaurant_repository.delete_restaurant(
+            db,
+            restaurant,
+        )
 
-            await notification_service.create_notification(
-                db=db,
-                user_id=restaurant.owner_id,
-                message="Your restaurant has been removed.",
-                notification_type=NotificationType.SYSTEM
-            )
+        await notification_service.create_notification(
+            db=db,
+            user_id=restaurant.owner_id,
+            message="Your restaurant has been removed.",
+            notification_type=NotificationType.SYSTEM
+        )
+
+        await db.commit()
 
         logger.info(
             "Restaurant deleted successfully (restaurant_id=%s)",
@@ -317,6 +320,8 @@ async def delete_restaurant_by_id(
         return deleted_restaurant
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while deleting restaurant")
         

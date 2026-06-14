@@ -159,5 +159,4 @@ async def get_notifications_by_user_id(
     return await notification_service.get_notifications_by_user_id(
         db,
         user_id,
-        current_user,
     )

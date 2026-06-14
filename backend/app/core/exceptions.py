@@ -37,14 +37,13 @@ class DatabaseError(DeliverySystemError):
         self, 
         message = "Database operation failed"
     ):
-        
         super().__init__(
 
             error_code="DATABASE_ERROR",
             message=message,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
+        
 class PermissionDeniedError(DeliverySystemError):
 
     def __init__(
@@ -59,6 +58,7 @@ class PermissionDeniedError(DeliverySystemError):
             message=message,
             status_code=status.HTTP_403_FORBIDDEN
         )
+
 class AdminAccessRequiredError(DeliverySystemError):
 
     def __init__(
@@ -433,6 +433,19 @@ class InvalidOperationError(DeliverySystemError):
 
         super().__init__(
             error_code="INVALID_OPERATION",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+class InvalidLongitudeError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Invalid longitude"
+    ):
+
+        super().__init__(
+            error_code="INVALID_LONGITUDE",
             message=message,
             status_code=status.HTTP_400_BAD_REQUEST
         )

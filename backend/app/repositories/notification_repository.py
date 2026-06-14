@@ -92,17 +92,18 @@ async def get_notification_by_id(
         )
     )
 
-    notification = result.scalar_one_or_none()
-
-    if notification:
-        
-        await db.delete(notification)
+    return result.scalar_one_or_none()
 
 
 async def delete_notification(
         db: AsyncSession,
-        notification: Notification
+        notification_id: int
     ):
+
+    notification = await db.execute(
+        select(Notification)
+        .where(Notification.id == notification_id)
+    )
 
     await db.delete(notification)
 
@@ -128,7 +129,8 @@ async def get_notifications_by_user_id(
     result = await db.execute(
         select(Notification)
         .where(
-            Notification.user_id == user_id
+            Notification.user_id == user_id,
+            
         )
         .order_by(Notification.created_at.desc())
     )
