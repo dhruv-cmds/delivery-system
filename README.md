@@ -1,3 +1,5 @@
+
+
 # Food Delivery Management System
 
 A production-oriented food delivery backend built with FastAPI, SQLAlchemy Async ORM, MySQL, JWT authentication, role-based access control, Docker, and a service-layer architecture.
