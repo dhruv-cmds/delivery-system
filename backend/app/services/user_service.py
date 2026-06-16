@@ -25,32 +25,30 @@ async def create_user(
 ):
     try:
 
-        async with db.begin():
 
-            existing_user = await user_repository.find_existing_user(
-                db,
-                user
+        existing_user = await user_repository.find_existing_user(
+            db,
+            user
+        )
+
+        if existing_user:
+            logger.warning(
+                "User already exists (email=%s)",
+                user.email.lower()
             )
+            raise UserAlreadyExistsError()
 
-            if existing_user:
-                logger.warning(
-                    "User already exists (email=%s)",
-                    user.email.lower()
-                )
-                raise UserAlreadyExistsError()
+        new_user = User(
+            username=user.username.lower(),
+            name=user.name,
+            phone=user.phone,
+            email=user.email.lower(),
+            hashed_password=hash_password(user.password)
+        )
 
-            new_user = User(
-                username=user.username.lower(),
-                name=user.name,
-                phone=user.phone,
-                email=user.email.lower(),
-                hashed_password=hash_password(user.password)
-            )
+        db.add(new_user)
 
-            db.add(new_user)
-
-            await db.flush()
-            await db.refresh(new_user)
+        await db.flush()
 
         logger.info(
             "User created successfully (user_id=%s)",
@@ -60,12 +58,18 @@ async def create_user(
         return new_user
 
     except IntegrityError:
+
+        await db.rollback()
+
         logger.exception(
             "Database integrity error while creating user"
         )
         raise UserAlreadyExistsError()
 
     except Exception:
+
+        await db.rollback()
+        
         logger.exception(
             "Unexpected error while creating user account"
         )

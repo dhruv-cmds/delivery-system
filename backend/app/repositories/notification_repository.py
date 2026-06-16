@@ -100,10 +100,12 @@ async def delete_notification(
         notification_id: int
     ):
 
-    notification = await db.execute(
+    result = await db.execute(
         select(Notification)
         .where(Notification.id == notification_id)
     )
+
+    notification = result.scalar_one_or_none()
 
     await db.delete(notification)
 

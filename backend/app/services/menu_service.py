@@ -92,8 +92,6 @@ async def create_menu_item(
         
         await db.flush()
 
-        await db.refresh(new_menu)
-
         await db.commit()
 
         logger.info(

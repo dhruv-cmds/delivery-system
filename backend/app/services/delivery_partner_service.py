@@ -18,6 +18,8 @@ from app.core import (
 
     PermissionDeniedError,
 
+    UserNotFoundError,
+
     DeliveryPartnerNotFoundError,
     DeliveryPartnerAlreadyExistsError,
 )
@@ -61,22 +63,21 @@ async def create_delivery_partner(
 
     try:
 
-        async with db.begin():
 
-            if current_user.role == UserRole.CUSTOMER:
+        if current_user.role == UserRole.CUSTOMER:
 
+            logger.info(
+                "User role updated from CUSTOMER to DELIVERY_PARTNER (user_id=%s)",
+                current_user.id
+            )
 
-                logger.info(
-                    "User role updated from CUSTOMER to DELIVERY_PARTNER (user_id=%s)",
-                    current_user.id
-                )
+            current_user.role = UserRole.DELIVERY_PARTNER
 
-                current_user.role = UserRole.DELIVERY_PARTNER
+        db.add(partner)
 
-            db.add(partner)
+        await db.flush()
 
-
-        await db.refresh(partner)
+        await db.commit()
 
         logger.info(
             "Delivery partner created successfully (user_id=%s)",
@@ -87,6 +88,8 @@ async def create_delivery_partner(
 
     except IntegrityError:
 
+        await db.rollback()
+
         logger.exception(
             "Database integrity error while creating delivery partner"
         )
@@ -94,6 +97,8 @@ async def create_delivery_partner(
         raise DeliveryPartnerAlreadyExistsError()
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception(
             "Unexpected error while creating delivery partner"
@@ -307,20 +312,42 @@ async def delete_delivery_partner(
 
         raise PermissionDeniedError()
 
-    deleted_partner = partner
-
     try:
+         
+        partner_owner = await db.get(
+            User,
+            partner.user_id
+        )
 
+        if not partner_owner:
+
+            logger.warning(
+                "User not found %s",
+                partner.user_id
+            )
+            
+            raise UserNotFoundError()
+
+        partner_owner.role = UserRole.CUSTOMER
+                    
         await db.delete(partner)
 
         await db.commit()
+
+        await db.refresh(partner_owner)
+
+
+        logger.info(
+            "Partner owner role after commit: %s",
+            partner_owner.role
+        )
 
         logger.info(
             "Delivery partner deleted successfully (partner_id=%s)",
             partner_id
         )
         
-        return deleted_partner
+        return partner
 
     except Exception:
 
