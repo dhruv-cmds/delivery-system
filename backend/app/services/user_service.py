@@ -1,3 +1,6 @@
+import json
+
+from app.core import redis_client
 from app.core import (
     
     logger,
@@ -81,6 +84,19 @@ async def get_user_by_id(
         user_id: int,
     ):
 
+    cache_key = f"user:id:{user_id}"
+
+    cached_user = await redis_client.get(cache_key)
+
+    if cached_user:
+
+        logger.info(
+            "User retriedved from Redis (user_id=%s)",
+            user_id
+        )
+
+        return json.loads(cached_user)
+
     user = await user_repository.get_user_by_id(
         db,
         user_id
@@ -95,8 +111,28 @@ async def get_user_by_id(
 
         raise UserNotFoundError()
     
+    user_data = {
+
+        "id": user.id,
+        "username":user.username,
+        "name":user.name,
+        "phone":user.phone,
+        "email":user.email,
+        "role": user.role,
+        "status": user.status,
+    }
+
+    await redis_client.set(
+        cache_key,
+        json.dumps(
+            user_data,
+            default=int
+        ),
+        ex=300
+    )
+    
     logger.info(
-        "User retrieved successfully (user_id=%s)",
+        "User retrieved from DB and cached successfully (user_id=%s)",
         user.id
     )
 
@@ -105,7 +141,7 @@ async def get_user_by_id(
 async def get_all_users(
         db: AsyncSession,
     ):
-
+    
     result = await user_repository.get_all_users(
         db
     )
@@ -121,6 +157,19 @@ async def get_user_by_email(
         user_email: str,
     ):  
 
+    cache_key = f"user:email:{user_email}"
+
+    cache_user = await redis_client.get(cache_key)
+
+    if cache_user:
+
+        logger.info(
+            "User retrived from Redis (user_email=%s)",
+            user_email
+        )
+
+        return json.loads(cache_user)
+    
     user = await user_repository.get_user_by_email(
         db,
         user_email 
@@ -135,9 +184,29 @@ async def get_user_by_email(
 
         raise UserNotFoundError()
     
+    user_data = {
+
+        "id": user.id,
+        "username":user.username,
+        "name":user.name,
+        "phone":user.phone,
+        "email": user.email,
+        "role": user.role,
+        "status": user.status,
+    }
+
+    await redis_client.set(
+        cache_key,
+        json.dumps(
+            user_data,
+            default=str
+        ),
+        ex=300      # cach for 5 min or waht every you like
+    )
+    
     logger.info(
 
-        "User retrieved successfully (email=%s)",
+        "User retrieved from DB and cached successfully (email=%s)",
         user.email
     )
 
@@ -148,6 +217,19 @@ async def get_user_by_username(
         username: str
     ):
 
+    cache_key = f"user:username:{username}"
+
+    cache_user = await redis_client.get(cache_key)
+
+    if cache_user:
+
+        logger.info(
+            "User retrived from Redis (username=%s)",
+            username
+        )
+
+        return json.loads(cache_user)
+    
     user = await user_repository.get_user_by_username(
         db,
         username
@@ -161,9 +243,28 @@ async def get_user_by_username(
         )
         
         raise UserNotFoundError()
+    
+    user_data = {
+        "id": user.id,
+        "username": user.username,
+        "name": user.name,
+        "phone": user.phone,
+        "email": user.email,
+        "role": user.role,
+        "status": user.status,
+    }
+
+    await redis_client.set(
+        cache_key,
+        json.dumps(
+            user_data,
+            default=str
+        ),
+        ex=300
+    )
 
     logger.info(
-        "User retrieved successfully (username=%s)",
+        "User retrieved from DB and cached successfully (username=%s)",
         user.username
     )
 

@@ -26,10 +26,12 @@ DB_NAME = os.getenv("DB_NAME")
 if ENV == "docker":
     DB_HOST = "delivery-db"
     DB_PORT = "3306"
+    REDIS_HOST = "redis"
 
 elif ENV == "dev":
     DB_HOST = "127.0.0.1"
     DB_PORT = "3306"
+    REDIS_HOST = "127.0.0.1"
 
 else:
     raise ValueError(f"Unknowen ENV: {ENV}")

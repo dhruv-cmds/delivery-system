@@ -67,6 +67,8 @@ from .limiter import limiter
 
 from .logger import logger
 
+from .redis import redis_client
+
 from .security import (
 
     hash_password,

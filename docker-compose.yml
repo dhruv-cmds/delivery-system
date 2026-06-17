@@ -46,5 +46,16 @@ services:
     volumes:
       - delivery-db-data:/var/lib/mysql
 
+  redis:
+
+    container_name: redis
+
+    image: redis:7-alpine
+
+    restart: always
+    
+    ports:
+      - "6379:6379"
+
 volumes:
   delivery-db-data:
