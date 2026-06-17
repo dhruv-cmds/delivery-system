@@ -1,6 +1,7 @@
 import json
 
 from app.core import redis_client
+
 from app.core import (
     
     logger,
@@ -126,7 +127,7 @@ async def get_user_by_id(
         cache_key,
         json.dumps(
             user_data,
-            default=int
+            default=str
         ),
         ex=300
     )

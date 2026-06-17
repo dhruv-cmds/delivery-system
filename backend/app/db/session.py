@@ -1,5 +1,7 @@
 import os 
 
+import redis.asyncio as redis
+
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession
