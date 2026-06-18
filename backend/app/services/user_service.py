@@ -52,6 +52,8 @@ async def create_user(
 
         db.add(new_user)
 
+        await db.commit()
+
         await db.flush()
 
         logger.info(

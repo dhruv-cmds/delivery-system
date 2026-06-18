@@ -1,6 +1,5 @@
 services:
   delivery-api:
-
     container_name: delivery-api
 
     build:
@@ -14,7 +13,8 @@ services:
       - .:/app:Z
 
     depends_on:
-      - delivery-db
+      mysql:
+        condition: service_healthy
 
     env_file:
       - ./backend/.env
@@ -24,9 +24,8 @@ services:
 
     restart: always
 
-  delivery-db:
-
-    container_name: delivery-db
+  mysql:
+    container_name: mysql-shared
 
     image: mysql:8.0
 
@@ -36,26 +35,33 @@ services:
       - ./backend/.env
 
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-delivery}
-      MYSQL_USER: ${MYSQL_USER:-delivery_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-delivery_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
     ports:
-      - "3010:3306"
+      - "3307:3306"
 
     volumes:
-      - delivery-db-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:Z
 
   redis:
-
     container_name: redis
 
     image: redis:7-alpine
 
     restart: always
-    
+
     ports:
       - "6379:6379"
 
 volumes:
-  delivery-db-data:
+  mysql-data:

@@ -6,9 +6,6 @@ from app.core import ENV
 if ENV == "docker":
     REDIS_HOST = "redis"
 
-elif ENV == "dev":
-    REDIS_HOST = "127.0.0.1"
-
 else:
     raise ValueError(f"Unknown ENV: {ENV}")
 

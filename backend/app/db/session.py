@@ -1,7 +1,5 @@
 import os 
 
-import redis.asyncio as redis
-
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     AsyncSession
@@ -24,19 +22,9 @@ DB_PASSWORD = quote_plus(
 )
 DB_NAME = os.getenv("DB_NAME")
 
-
-if ENV == "docker":
-    DB_HOST = "delivery-db"
-    DB_PORT = "3306"
-    REDIS_HOST = "redis"
-
-elif ENV == "dev":
-    DB_HOST = "127.0.0.1"
-    DB_PORT = "3306"
-    REDIS_HOST = "127.0.0.1"
-
-else:
-    raise ValueError(f"Unknowen ENV: {ENV}")
+DB_HOST = os.getenv("DB_HOST", "mysql-shared")
+DB_PORT = os.getenv("DB_PORT", "3306")
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
 DATABASE_URL = (
     f"mysql+aiomysql://"
