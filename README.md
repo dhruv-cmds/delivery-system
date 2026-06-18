@@ -25,6 +25,8 @@ The system supports restaurant management, menu management, order processing, pa
 * Update restaurant information
 * Change restaurant status
 * Delete restaurants
+* Redis caching support
+
 
 ### Menu Management
 
@@ -34,6 +36,7 @@ The system supports restaurant management, menu management, order processing, pa
 * Update menu items
 * Change menu availability status
 * Delete menu items
+* Redis caching support
 
 ### Order Management
 
@@ -44,6 +47,7 @@ The system supports restaurant management, menu management, order processing, pa
 * Customer-specific order visibility
 * Restaurant-specific order visibility
 * Delivery partner order visibility
+* Redis caching support
 
 ### Payment Management
 
@@ -53,6 +57,7 @@ The system supports restaurant management, menu management, order processing, pa
 * List payment history
 * Update payment status
 * Automatic order payment status synchronization
+* Redis caching support
 
 ### Delivery Partner Management
 
@@ -61,6 +66,7 @@ The system supports restaurant management, menu management, order processing, pa
 * Update delivery location
 * Retrieve partner information
 * Delete delivery partners
+* Redis caching support
 
 ### Notifications
 
@@ -70,6 +76,17 @@ The system supports restaurant management, menu management, order processing, pa
 * Mark all notifications as read
 * Delete notifications
 * Administrative notification access
+
+### Performance
+
+* Redis caching layer
+* Cache-aside strategy
+* Cache refresh after updates
+* Rate limiting using SlowAPI
+* Health Monitoring
+* API health checks
+* Database connectivity checks
+* Redis connectivity checks
 
 ### Health Monitoring
 
@@ -88,6 +105,7 @@ The system supports restaurant management, menu management, order processing, pa
 * Pydantic v2
 * aiomysql
 * MySQL 8
+* Redis
 
 ### Security
 
@@ -100,6 +118,7 @@ The system supports restaurant management, menu management, order processing, pa
 * Docker
 * Docker Compose
 * Nginx
+* Redis
 
 ### Testing & Performance
 
@@ -252,6 +271,15 @@ GET /api/admin/notification/all
 GET /api/admin/notification/user/{user_id}
 ```
 
+### Tracking 
+
+```text
+POST /api/tracking
+
+GET  /api/tracking/order/{order_id}
+GET  /api/tracking/all
+```
+
 ### Health
 
 ```text
@@ -283,6 +311,11 @@ MYSQL_ROOT_PASSWORD=root_password
 MYSQL_DATABASE=delivery_db
 MYSQL_USER=delivery_user
 MYSQL_PASSWORD=delivery_password
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
+
 ```
 
 For local development:
@@ -349,6 +382,7 @@ uvicorn backend.app.main:app --reload
 
 * Async SQLAlchemy setup
 * MySQL integration
+* Redis integration
 * JWT authentication
 * Password hashing
 * Custom exception system
@@ -359,14 +393,16 @@ uvicorn backend.app.main:app --reload
 * Order management
 * Payment processing
 * Delivery partner management
+* Order tracking
 * Notification management
 * Health monitoring endpoints
+* Redis caching across services
+* Rate limiting
 * Docker configuration
 * OpenAPI / Swagger documentation
 
 ### In Progress
 
-* Order tracking workflows
 * WebSocket support
 * Background task processing
 * Frontend application
@@ -387,6 +423,8 @@ uvicorn backend.app.main:app --reload
 
 * Database tables are currently initialized during application startup.
 * Alembic migrations should replace automatic table creation before production deployment.
+* Redis is used as the caching layer for frequently accessed resources.
+* Cache entries are refreshed after update operations.
 * Repository layer exists but is intentionally lightweight because business logic is handled through services.
 * API endpoints are documented through FastAPI OpenAPI generation.
 * Docker is the primary development environment.

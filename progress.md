@@ -1,14 +1,14 @@
 # Project Progress
 
-Last Updated: 2026-06-08
+Last Updated: 2026-06-18
 
 ## Project Overview
 
-Food Delivery Management System is a FastAPI-based backend application designed around a service-layer architecture with JWT authentication, role-based access control, asynchronous SQLAlchemy ORM, MySQL, Docker, and OpenAPI documentation.
+Food Delivery Management System is a FastAPI-based backend application designed around a service-layer architecture with JWT authentication, role-based access control, asynchronous SQLAlchemy ORM, MySQL, Redis caching, Docker, rate limiting, and OpenAPI documentation.
 
-The project now includes complete CRUD and workflow support for users, restaurants, menus, orders, payments, delivery partners, notifications, and health monitoring.
+The project now includes complete CRUD and workflow support for users, restaurants, menus, orders, payments, delivery partners, notifications, and order tracking.
 
-Current development is focused on completing delivery tracking, WebSocket integration, automated testing, load testing, frontend development, and deployment preparation.
+Current development is focused on WebSocket integration, automated testing, load testing, frontend development, Alembic migrations, and deployment preparation.
 
 ---
 
@@ -16,14 +16,15 @@ Current development is focused on completing delivery tracking, WebSocket integr
 
 ## Project Infrastructure
 
-* Backend project structure established.
-* Frontend project scaffold created.
-* Docker and Docker Compose configured.
-* MySQL containerized development environment.
-* Nginx placeholder structure added.
-* k6 load testing structure added.
-* MIT License added.
-* OpenAPI / Swagger documentation configured.
+* Backend project structure established
+* Frontend project scaffold created
+* Docker and Docker Compose configured
+* MySQL containerized development environment
+* Redis containerized development environment
+* Nginx placeholder structure added
+* k6 load testing structure added
+* MIT License added
+* OpenAPI / Swagger documentation configured
 
 ---
 
@@ -31,22 +32,23 @@ Current development is focused on completing delivery tracking, WebSocket integr
 
 ### Configuration
 
-* Environment-based configuration.
-* Docker and local development support.
-* Database host auto-selection.
-* Application-wide constants and limits.
-* Centralized logging configuration.
+* Environment-based configuration
+* Docker and local development support
+* Database host auto-selection
+* Redis configuration
+* Application-wide constants and limits
+* Centralized logging configuration
 
 ### Security
 
-* JWT access token generation.
-* Password hashing using bcrypt.
-* Password verification.
-* Role-based authorization helpers.
-* Current user dependency injection.
-* Admin-only access guards.
-* Restaurant-owner access guards.
-* Delivery-partner access guards.
+* JWT access token generation
+* Password hashing using bcrypt
+* Password verification
+* Role-based authorization helpers
+* Current user dependency injection
+* Admin-only access guards
+* Restaurant-owner access guards
+* Delivery-partner access guards
 
 ### Exception Handling
 
@@ -59,9 +61,46 @@ Custom exception hierarchy implemented for:
 * Orders
 * Payments
 * Delivery Partners
+* Tracking
 * Notifications
 * Permissions
 * Database failures
+
+### Rate Limiting
+
+Implemented using SlowAPI.
+
+Protected endpoints include:
+
+* Authentication endpoints
+* Public retrieval endpoints
+* Business operations
+
+---
+
+## Redis Caching Layer
+
+Implemented Redis cache-aside strategy across major services.
+
+Cached entities:
+
+* Users
+* Restaurants
+* Menus
+* Restaurant menu collections
+* Orders
+* Payments
+* Delivery Partners
+* Tracking records
+
+Features:
+
+* Automatic cache population
+* Automatic cache refresh after updates
+* JSON serialization using Pydantic responses
+* Cache expiration (TTL)
+* Reduced database queries
+* Faster read performance
 
 ---
 
@@ -81,15 +120,15 @@ Implemented SQLAlchemy Async ORM models for:
 
 ### Relationships Implemented
 
-* Users own restaurants.
-* Users place orders.
-* Restaurants manage menus.
-* Restaurants receive orders.
-* Orders contain order items.
-* Orders have payments.
-* Orders can be assigned to delivery partners.
-* Orders contain tracking updates.
-* Users receive notifications.
+* Users own restaurants
+* Users place orders
+* Restaurants manage menus
+* Restaurants receive orders
+* Orders contain order items
+* Orders have payments
+* Orders can be assigned to delivery partners
+* Orders contain tracking updates
+* Users receive notifications
 
 ---
 
@@ -133,6 +172,11 @@ Implemented schemas for:
 * Partner creation
 * Partner responses
 
+### Tracking
+
+* Tracking creation
+* Tracking responses
+
 ### Notifications
 
 * Notification responses
@@ -168,6 +212,10 @@ Implemented:
 * Get user by username
 * Get all users
 
+Redis support:
+
+* Cached user lookups
+
 ---
 
 ## Restaurant Service
@@ -182,7 +230,8 @@ Implemented:
 
 Additional functionality:
 
-* Automatic promotion from CUSTOMER to RESTAURANT_OWNER during restaurant creation.
+* Automatic promotion from CUSTOMER to RESTAURANT_OWNER during restaurant creation
+* Redis caching
 
 ---
 
@@ -201,6 +250,11 @@ Authorization:
 
 * Admin
 * Restaurant owner
+
+Additional functionality:
+
+* Redis caching
+* Cached restaurant menu collections
 
 ---
 
@@ -223,6 +277,11 @@ Business rules implemented:
 * Maximum order value enforcement
 * Final-state protection
 * Customer-scoped order access
+
+Additional functionality:
+
+* Redis caching
+* Order status notifications
 
 Current limitation:
 
@@ -248,6 +307,10 @@ Business rules implemented:
 * Payment status synchronization with orders
 * Admin-only payment status updates
 
+Additional functionality:
+
+* Redis caching
+
 ---
 
 ## Delivery Partner Service
@@ -261,6 +324,31 @@ Implemented:
 * Update delivery partner
 * Update delivery location
 * Delete delivery partner
+
+Additional functionality:
+
+* Redis caching
+* Location updates
+
+---
+
+## Tracking Service
+
+Implemented:
+
+* Create tracking record
+* Get tracking by order ID
+* Get all tracking records
+
+Business rules implemented:
+
+* Coordinate validation
+* Order ownership validation
+* Admin visibility
+
+Additional functionality:
+
+* Redis caching
 
 ---
 
@@ -291,8 +379,6 @@ POST /api/auth/signup
 POST /api/auth/login
 ```
 
----
-
 ## Users
 
 ```text
@@ -301,8 +387,6 @@ GET /api/user/{user_id}
 GET /api/user/email/{user_email}
 GET /api/user/username/{username}
 ```
-
----
 
 ## Restaurants
 
@@ -316,8 +400,6 @@ PATCH  /api/restaurant/{restaurant_id}/status
 
 DELETE /api/restaurant/{restaurant_id}
 ```
-
----
 
 ## Menus
 
@@ -333,8 +415,6 @@ PATCH  /api/menus/{menu_id}/status
 DELETE /api/menus/{menu_id}
 ```
 
----
-
 ## Orders
 
 ```text
@@ -348,8 +428,6 @@ PATCH  /api/order/{order_id}/status
 DELETE /api/order/{order_id}
 ```
 
----
-
 ## Payments
 
 ```text
@@ -362,8 +440,6 @@ GET    /api/payment/{payment_id}
 
 PATCH  /api/payment/{payment_id}/status
 ```
-
----
 
 ## Delivery Partners
 
@@ -380,7 +456,14 @@ PUT    /api/delivery_partner/{partner_id}/location
 DELETE /api/delivery_partner/{partner_id}
 ```
 
----
+## Tracking
+
+```text
+POST /api/tracking
+
+GET  /api/tracking/order/{order_id}
+GET  /api/tracking/all
+```
 
 ## Notifications
 
@@ -394,16 +477,12 @@ PATCH  /api/notification/read-all
 DELETE /api/notification/{notification_id}
 ```
 
----
-
 ## Admin Notifications
 
 ```text
 GET /api/admin/notification/all
 GET /api/admin/notification/user/{user_id}
 ```
-
----
 
 ## Health
 
@@ -424,6 +503,7 @@ Planned:
 * API endpoint testing
 * Service-layer testing
 * Database testing
+* Redis cache testing
 
 ---
 
@@ -434,17 +514,7 @@ Planned:
 * k6 load testing
 * Stress testing
 * Throughput benchmarking
-
----
-
-## Delivery Tracking
-
-Pending:
-
-* Tracking service implementation
-* Driver assignment workflow
-* Delivery status progression
-* Tracking history endpoints
+* Redis performance benchmarking
 
 ---
 
@@ -477,6 +547,7 @@ Pending:
 
 Planned:
 
+* Alembic migrations
 * Docker production setup
 * Nginx reverse proxy
 * CI/CD pipeline
@@ -487,25 +558,23 @@ Planned:
 
 # Known Limitations
 
-* Order creation currently supports a single menu item per order.
-* Database tables are currently initialized during startup and should be replaced with Alembic migrations before production.
-* Tracking workflows are not yet implemented.
-* WebSocket functionality is not yet implemented.
-* Automated tests have not yet been added.
+* Order creation currently supports a single menu item per order
+* Database tables are initialized at startup and should be migrated to Alembic
+* WebSocket functionality is not yet implemented
+* Automated tests have not yet been added
 
 ---
 
 # Next Milestones
 
-1. Complete delivery tracking APIs and services.
-2. Implement WebSocket infrastructure.
-3. Add pytest test suite.
-4. Add k6 performance testing.
-5. Replace startup table creation with Alembic migrations.
-6. Complete frontend integration.
-7. Configure CI/CD pipelines.
-8. Deploy staging environment.
-9. Deploy production environment.
+1. Implement WebSocket infrastructure
+2. Add pytest test suite
+3. Add k6 performance testing
+4. Replace startup table creation with Alembic migrations
+5. Complete frontend integration
+6. Configure CI/CD pipelines
+7. Deploy staging environment
+8. Deploy production environment
 
 ---
 
@@ -519,6 +588,8 @@ Planned:
 * Payment management module
 * Delivery partner management module
 * Notification management module
+* Tracking management module
+* Redis caching integration
 * Role-based access control improvements
 * Payment-order synchronization
 * Order visibility filtering
@@ -528,4 +599,4 @@ Planned:
 * Dockerized development workflow
 * Rate limiting integration
 
-The backend has now reached a stage where all major business domains are implemented and exposed through REST APIs. The primary focus moving forward is testing, real-time features, frontend development, and deployment preparation.
+The backend has reached a feature-complete state for all major business domains. The primary focus moving forward is testing, real-time communication, frontend development, deployment readiness, and production hardening.
