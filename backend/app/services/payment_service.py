@@ -51,8 +51,6 @@ def build_payment_metadata(payment_method):
 
     return status, paid_at, transaction_reference
 
-#  Rn delviered order status sucessfull still money can debit
-#  from user (means after order recived user still make a payment)
 async def make_payment(
         db: AsyncSession,
         order_id: int,

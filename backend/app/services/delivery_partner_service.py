@@ -5,11 +5,12 @@ from decimal import Decimal
 
 from app.db.models import DeliveryPartner, User
 
-from app.schemas import DeliveryPartnerCreate
+from app.schemas import DeliveryPartnerCreate, DeliveryPartnerResponse
 
 from app.core import (
 
     logger,
+    redis_client,
 
     UserRole,
     VehicleTypeStatus,
@@ -22,6 +23,9 @@ from app.core import (
 
     DeliveryPartnerNotFoundError,
     DeliveryPartnerAlreadyExistsError,
+
+    InvalidLatitudeError,
+    InvalidLongitudeError
 )
 
 from app.repositories import delivery_repository
@@ -62,7 +66,6 @@ async def create_delivery_partner(
     )
 
     try:
-
 
         if current_user.role == UserRole.CUSTOMER:
 
@@ -112,6 +115,18 @@ async def get_delivery_partner_by_user_id(
         user_id: int,
     ):
 
+    cache_key = f"user_id:{user_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Delivery partner ID retrived by user ID (user_id=%s)",
+            user_id
+        )
+
+        return DeliveryPartnerResponse.model_validate_json(cached)
 
     partner = await delivery_repository.get_delivery_partner_user_id(
         db,
@@ -125,14 +140,42 @@ async def get_delivery_partner_by_user_id(
             user_id
         )
         raise DeliveryPartnerNotFoundError()
+    
+    response = DeliveryPartnerResponse.model_validate(
 
-    return partner
+        # schema has from_attributes so you can only use payment 
+        # and can use with from_attributes both works
+        # use what every you like
+        
+        partner,
+        from_attributes=True
+    )
 
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
+
+    return response
 
 async def get_delivery_partner_by_id(
         db: AsyncSession,
         partner_id: int,
     ):
+
+    cache_key = f"partner_id:{partner_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Delivery partner ID retrived by user ID (user_id=%s)",
+            partner_id
+        )
+
+        return DeliveryPartnerResponse.model_validate_json(cached)
 
     partner = await delivery_repository.get_delivery_partner_by_id(
         db,
@@ -147,9 +190,20 @@ async def get_delivery_partner_by_id(
         )
 
         raise DeliveryPartnerNotFoundError()
+    
+    response = DeliveryPartnerResponse.model_validate(
+        
+        partner,
+        from_attributes=True
+    )
 
-    return partner
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
 
+    return response
 
 async def get_all_delivery_partners(
         db: AsyncSession,
@@ -206,7 +260,28 @@ async def update_delivery_partner(
             partner_id
         )
 
-        return partner
+        cache_key_partner = f"partner_id:{partner.id}"
+        cache_key_user = f"user_id:{partner.user_id}"
+
+        response = DeliveryPartnerResponse.model_validate(
+        
+            partner,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key_partner,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        await redis_client.set(
+            cache_key_user,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        return response
 
     except Exception:
 
@@ -252,7 +327,13 @@ async def update_location(
         )
 
         raise PermissionDeniedError()
+    
+    if latitude < -90 or latitude > 90:
+        raise InvalidLatitudeError()
 
+    if longitude < -180 or longitude > 180:
+        raise InvalidLongitudeError()
+    
     partner.latitude = latitude
     partner.longitude = longitude
 
@@ -267,8 +348,29 @@ async def update_location(
             partner_id
         )
 
-        return partner
+        cache_key_partner = f"partner_id:{partner.id}"
+        cache_key_user = f"user_id:{partner.user_id}"
 
+        response = DeliveryPartnerResponse.model_validate(
+        
+            partner,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key_partner,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        await redis_client.set(
+            cache_key_user,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        return response
+    
     except Exception:
 
         await db.rollback()

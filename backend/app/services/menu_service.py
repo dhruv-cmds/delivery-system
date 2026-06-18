@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
@@ -6,13 +8,14 @@ from app.db.models import (
     Menu,
 )
 
-from app.schemas import MenuCreate
+from app.schemas import MenuCreate, MenuResponse
 
 from sqlalchemy.exc  import IntegrityError
 
 from app.core import (
 
     logger,
+    redis_client,
 
     UserRole,
 
@@ -125,6 +128,19 @@ async def get_menu_item_by_id (
         menu_id: int,
     ):
 
+    cache_key = f"menu_id:{menu_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.warning(
+            "Menu retrived from Redis (menu_id%s)",
+            menu_id
+        )
+
+        return MenuResponse.model_validate_json(cached)
+    
     menu = await menu_repository.get_menu_by_id(
         db,
         menu_id
@@ -139,18 +155,68 @@ async def get_menu_item_by_id (
 
         raise MenuNotFoundError()
     
-    return menu
+    response = MenuResponse.model_validate(
+
+        # schema has from_attributes so you can only use payment 
+        # and can use with from_attributes both works
+        # use what every you like
+
+        menu,
+        from_attributes=True
+    )
+
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
+    
+    return response
 
 async def get_menu_items_by_restaurant_id(
         db: AsyncSession,
         restaurant_id: int
     ):
 
-    return await menu_repository.get_menu_by_restaurant_id(
+    cache_key = f"restaurnat_id:{restaurant_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.warning(
+            "Menu retrived by restaurant ID (restaurant_id)=%s",
+            restaurant_id
+        )
+
+        return [
+            MenuResponse.model_validate_json(item)
+            for item in json.loads(cached)
+        ]
+    
+    menus = await menu_repository.get_menu_by_restaurant_id(
         db,
         restaurant_id
     )
     
+    response = [
+        MenuResponse.model_validate(menu)
+        for menu in menus
+    ]
+
+    await redis_client.set(
+
+        cache_key,
+        json.dumps(
+            
+            [item.model_dump() for item in response],
+
+            default=str
+        ),
+        ex=300
+    )
+
+    return response
 
 async def update_menu_item(
         db: AsyncSession,
@@ -214,7 +280,6 @@ async def update_menu_item(
     menu.description = menu_data.description
     menu.price = menu_data.price
 
-
     try:
 
         await db.commit()
@@ -226,7 +291,21 @@ async def update_menu_item(
             menu.id
         )
 
-        return menu
+        cache_key = f"menu_id:{menu_id}"
+
+        response = MenuResponse.model_validate(
+
+            menu,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        return response
     
     except IntegrityError:
 
@@ -310,7 +389,6 @@ async def delete_menu_item(
         raise DatabaseError()
 
 
-
 async def change_menu_status(
         db: AsyncSession,
         menu_id: int,
@@ -355,7 +433,6 @@ async def change_menu_status(
 
         raise PermissionDeniedError()
     
-
     menu.status = status
 
     try:
@@ -369,8 +446,22 @@ async def change_menu_status(
             menu.id,
             status
         )
-        
-        return menu
+
+        cache_key = f"menu_id:{menu_id}"
+
+        response = MenuResponse.model_validate(
+
+            menu,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key,
+            response.model_dump_json(),
+            ex=300
+        )
+
+        return response
     
     except Exception:
 

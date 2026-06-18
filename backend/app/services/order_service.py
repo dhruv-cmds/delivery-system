@@ -1,10 +1,12 @@
+import json
+
 from decimal import Decimal
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Order, OrderItem, User
-from app.schemas import OrderCreate
+from app.schemas import OrderCreate, OrderResponse, MenuResponse
 from app.repositories import order_repository
 
 from app.core import (
@@ -19,6 +21,7 @@ from app.core import (
     MAX_TRANSFER_LIMIT,
 
     logger,
+    redis_client,
 
     DatabaseError,
     EmptyOrderError,
@@ -139,28 +142,35 @@ async def create_order(
 
     try:
 
-
         new_order = await order_repository.create_order(
             db,
             new_order
         )
             
-        await notification_service.create_notification(
-            db=db,
-            user_id=current_user.id,
-            message="Your order has been placed successfully.",
-            notification_type=NotificationType.ORDER_UPDATE
-        )
-        
         await db.commit()
 
+        try:
 
-        logger.info(
-            "Notification created successfully for (order_id=%s, customer_id=%s)",
-            new_order.id,
-            current_user.id
-        )
-            
+            await notification_service.create_notification(
+                db=db,
+                user_id=current_user.id,
+                message="Your order has been placed successfully.",
+                notification_type=NotificationType.ORDER_UPDATE
+            )
+
+            logger.info(
+                "Notification created successfully for (order_id=%s, customer_id=%s)",
+                new_order.id,
+                current_user.id
+            )
+
+        except Exception:
+
+            logger.exception(
+                "Failed to create notification for order_id=%s",
+                new_order.id
+            )
+                
     except IntegrityError:
 
         await db.rollback()
@@ -254,7 +264,25 @@ async def update_order_status(
             status
         )
 
-        return order
+        cache_key = f"order_id:{order_id}"
+
+        response = OrderResponse.model_validate(
+
+        # schema has from_attributes so you can only use payment 
+        # and can use with from_attributes both works
+        # use what every you like
+
+            order,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key,
+            response.model_dump_json(),
+            ex=3600  # 1 hour
+        )
+
+        return response
 
     except Exception:
 
@@ -385,13 +413,38 @@ async def get_order_by_id (
 
         raise OrderNotFoundError()
     
+    cache_key = f"order_id:{order_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Order retrived from Redis (order_id=%s)",
+            order_id
+        )
+
+        return OrderResponse.model_validate_json(cached)
+    
+    
+    response = OrderResponse.model_validate(
+
+        order,
+        from_attributes=True
+    )
+
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
 
     logger.info(
         "Order retrieved successfully (order_id=%s)",
         order_id
     )
 
-    return order
+    return response
 
 async def get_order_by_menu_id(
         
@@ -399,12 +452,25 @@ async def get_order_by_menu_id(
         menu_id: int
     ):
 
-    result = await order_repository.get_menu_item_for_order(
+    cache_key = f"menu_id:{menu_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Order retrived from Redis (order_id=%s)",
+            menu_id
+        )
+
+        return MenuResponse.model_validate_json(cached)
+    
+    menu = await order_repository.get_menu_item_for_order(
         db,
         menu_id
     )
 
-    if not result:
+    if not menu:
 
         logger.warning(
             "Order not found by menu ID %s",
@@ -412,4 +478,16 @@ async def get_order_by_menu_id(
         )
         raise MenuNotFoundError()
     
-    return result
+    response = MenuResponse.model_validate(
+
+        menu,
+        from_attributes=True
+    )
+    
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=3600
+    )
+
+    return response

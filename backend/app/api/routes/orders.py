@@ -11,8 +11,6 @@ from app.schemas import (
 
 from app.services import order_service
 
-from app.repositories import order_repository
-
 from app.core import limiter, OrderStatus
 
 from app.api import (
