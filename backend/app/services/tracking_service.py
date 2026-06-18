@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import OrderTracking, User
@@ -5,15 +7,18 @@ from app.db.models import OrderTracking, User
 from app.core import (
     DatabaseError,
     InvalidLongitudeError,
+    InvalidLatitudeError,
     OrderNotFoundError,
     PermissionDeniedError,
     UserRole,
+
+    redis_client,
 
     logger
 )
 
 from app.repositories import traking_repository
-from app.schemas import TrackingCreate
+from app.schemas import TrackingCreate, TrackingResponse
 
 #  only res owners can admin can make order traking service then share wiht use through notification or link (only admin can do rn)
 async def create_tracking(
@@ -22,7 +27,7 @@ async def create_tracking(
     ):
     
     if tracking.latitude < -90 or tracking.latitude > 90:
-        raise  InvalidLongitudeError()
+        raise  InvalidLatitudeError()
 
     if tracking.longitude < -180 or tracking.longitude > 180:
         raise  InvalidLongitudeError()
@@ -63,7 +68,7 @@ async def get_tracking_by_order(
         order_id: int,
         current_user: User
     ):
-         
+    
     tracking = await traking_repository.get_tracking_order(
         db,
         order_id
@@ -91,12 +96,37 @@ async def get_tracking_by_order(
          
         raise PermissionDeniedError()
     
+
+    cache_key = f"tracking:order:{order_id}"
+
+    cache_fetch = await redis_client.get(cache_key)
+
+    if cache_fetch:
+        logger.info(
+            "Tracking retrieved from Redis (order_id=%s)",
+            order_id,
+        )
+
+        return TrackingResponse.model_validate_json(cache_fetch)
+    
+    response = TrackingResponse.model_validate(
+
+        tracking,
+        from_attributes=True,
+    )
+
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
+    
     logger.info(
         "Order tracking retrieved successfully (order_id=%s)",
         order_id
     )
 
-    return tracking
+    return response
 
 async def get_all_tracking (
         db: AsyncSession,

@@ -7,7 +7,6 @@ from app.core import limiter, RestaurantStatus
 from app.api import (
 
     get_db,
-    get_current_user,
     get_access_manager,
     require_restaurant_access
 )

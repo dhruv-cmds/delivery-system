@@ -449,3 +449,16 @@ class InvalidLongitudeError(DeliverySystemError):
             message=message,
             status_code=status.HTTP_400_BAD_REQUEST
         )
+
+class InvalidLatitudeError(DeliverySystemError):
+
+    def __init__(
+        self,
+        message: str = "Invalid latitude"
+    ):
+
+        super().__init__(
+            error_code="INVALID_LATITUDE",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )

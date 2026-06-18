@@ -1,10 +1,9 @@
 import json
 
-from app.core import redis_client
-
 from app.core import (
     
     logger,
+    redis_client,
 
     DatabaseError,
     UserNotFoundError,
@@ -17,7 +16,7 @@ from sqlalchemy.exc  import IntegrityError
 
 from app.db.models import User
 
-from app.schemas import UserCreate
+from app.schemas import UserCreate, UserResponse
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +27,6 @@ async def create_user(
     user: UserCreate
 ):
     try:
-
 
         existing_user = await user_repository.find_existing_user(
             db,
@@ -94,11 +92,11 @@ async def get_user_by_id(
     if cached_user:
 
         logger.info(
-            "User retriedved from Redis (user_id=%s)",
+            "User retrived from Redis (user_id=%s)",
             user_id
         )
 
-        return json.loads(cached_user)
+        return UserResponse.model_validate_json(cached_user)
 
     user = await user_repository.get_user_by_id(
         db,
@@ -114,23 +112,14 @@ async def get_user_by_id(
 
         raise UserNotFoundError()
     
-    user_data = {
-
-        "id": user.id,
-        "username":user.username,
-        "name":user.name,
-        "phone":user.phone,
-        "email":user.email,
-        "role": user.role,
-        "status": user.status,
-    }
+    response = UserResponse.model_validate(
+        user,
+        from_attributes=True
+    )
 
     await redis_client.set(
         cache_key,
-        json.dumps(
-            user_data,
-            default=str
-        ),
+        response.model_dump_json(),
         ex=300
     )
     
@@ -139,7 +128,7 @@ async def get_user_by_id(
         user.id
     )
 
-    return user
+    return response
 
 async def get_all_users(
         db: AsyncSession,
@@ -171,7 +160,7 @@ async def get_user_by_email(
             user_email
         )
 
-        return json.loads(cache_user)
+        return UserResponse.model_validate_json(cache_user)
     
     user = await user_repository.get_user_by_email(
         db,
@@ -187,24 +176,15 @@ async def get_user_by_email(
 
         raise UserNotFoundError()
     
-    user_data = {
-
-        "id": user.id,
-        "username":user.username,
-        "name":user.name,
-        "phone":user.phone,
-        "email": user.email,
-        "role": user.role,
-        "status": user.status,
-    }
+    response = UserResponse.model_validate(
+        user,
+        from_attributes=True
+    )
 
     await redis_client.set(
         cache_key,
-        json.dumps(
-            user_data,
-            default=str
-        ),
-        ex=300      # cach for 5 min or waht every you like
+        response.model_dump_json(),
+        ex=300
     )
     
     logger.info(
@@ -213,7 +193,7 @@ async def get_user_by_email(
         user.email
     )
 
-    return user
+    return response
 
 async def get_user_by_username(
         db: AsyncSession,
@@ -231,7 +211,7 @@ async def get_user_by_username(
             username
         )
 
-        return json.loads(cache_user)
+        return UserResponse.model_validate_json(cache_user)
     
     user = await user_repository.get_user_by_username(
         db,
@@ -247,22 +227,15 @@ async def get_user_by_username(
         
         raise UserNotFoundError()
     
-    user_data = {
-        "id": user.id,
-        "username": user.username,
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email,
-        "role": user.role,
-        "status": user.status,
-    }
+    response = UserResponse.model_validate(
+        
+        user,
+        from_attributes=True
+    )
 
     await redis_client.set(
         cache_key,
-        json.dumps(
-            user_data,
-            default=str
-        ),
+        response.model_dump_json(),
         ex=300
     )
 
@@ -271,4 +244,4 @@ async def get_user_by_username(
         user.username
     )
 
-    return user
+    return response

@@ -60,7 +60,8 @@ from .exceptions import (
     
     InvalidOperationError,
 
-    InvalidLongitudeError
+    InvalidLongitudeError,
+    InvalidLatitudeError,
 )
 
 from .limiter import limiter

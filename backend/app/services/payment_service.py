@@ -5,16 +5,18 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Payment, User
-from app.schemas import PaymentCreate
+from app.schemas import PaymentCreate, PaymentResponse 
 from app.repositories import payment_repository
 
 from app.repositories import order_repository
 from app.core import (
 
     logger,
-
+    redis_client,
+    
     UserRole,
     PaymentStatus,
+    OrderStatus,
 
     DatabaseError,
 
@@ -23,6 +25,7 @@ from app.core import (
     PermissionDeniedError,
 
     OrderNotFoundError,
+    OrderAlreadyDeliveredError,
 )
 
 
@@ -48,13 +51,14 @@ def build_payment_metadata(payment_method):
 
     return status, paid_at, transaction_reference
 
-#  rn delviered order status sucessfull still money can debit form them (means after order recive still make payment)
+#  Rn delviered order status sucessfull still money can debit
+#  from user (means after order recived user still make a payment)
 async def make_payment(
-    db: AsyncSession,
-    order_id: int,
-    payment: PaymentCreate,
-    current_user: User,
-):
+        db: AsyncSession,
+        order_id: int,
+        payment: PaymentCreate,
+        current_user: User,
+    ):
 
     if current_user.role != UserRole.CUSTOMER:
 
@@ -64,6 +68,7 @@ async def make_payment(
         )
 
         raise PermissionDeniedError()
+    
 
     order = await order_repository.get_order_by_id(
         db,
@@ -79,7 +84,17 @@ async def make_payment(
         )
 
         raise OrderNotFoundError()
+    
+    if order.status == OrderStatus.DELIVERED:
 
+        logger.warning(
+            "order already delivered (order_id%s)"
+            "you can make a payment for that order",
+            order.id
+        ) 
+
+        raise OrderAlreadyDeliveredError
+    
     existing_payment = await payment_repository.get_payment_by_order_id(
         db,
         order.id,
@@ -169,6 +184,19 @@ async def get_payment_by_id(
         current_user: User,
     ):
 
+    cache_key = f"payment_id:{payment_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.warning(
+            "Payment retrieved from Redis (payment_id=%s)",
+            payment_id
+        )
+
+        return PaymentResponse.model_validate_json(cached)
+
     payment = await payment_repository.get_payment_by_id(
         db,
         payment_id,
@@ -182,13 +210,29 @@ async def get_payment_by_id(
             payment_id
         )
         raise PaymentNotFoundError()
+    
+    response = PaymentResponse.model_validate(
+
+        # schema has from_attributes so you can only use payment 
+        # and can use with from_attributes both works
+        # use what every you like
+        
+        payment,
+        from_attributes=True
+    )
+
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=300
+    )
 
     logger.info(
         "Payment retrieved successfully (payment_id=%s)",
         payment.id
     )
 
-    return payment
+    return response
 
 
 async def get_payment_by_order_id(
@@ -196,6 +240,20 @@ async def get_payment_by_order_id(
         order_id: int,
         current_user: User
     ):
+
+    cache_key = f"order_id:{order_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Payment retrived by (order_id=%s) from Redis",
+            order_id
+        )
+
+        return PaymentResponse.model_validate_json(cached)
+    
 
     order = await order_repository.get_order_by_id(
         db,
@@ -225,12 +283,23 @@ async def get_payment_by_order_id(
         )
         raise PaymentNotFoundError()
 
+    response = PaymentResponse.model_validate(
+        payment,
+        from_attributes=True
+    )
+
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=600
+    )
+
     logger.info(
         "Payment retrieved successfully for order ID %s",
         order_id
     )
 
-    return payment
+    return response
 
 
 async def get_all_payments(
@@ -310,21 +379,41 @@ async def update_payment_status(
 
     try:
 
-
         await payment_repository.save_payment(
             db,
             payment,
         )
 
         await db.commit()
-            
+
+        cache_key = f"payment_id:{payment_id}"
+
+        cache_key_order = f"order_id:{payment.order_id}"
+        
+        response = PaymentResponse.model_validate(
+            payment,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+           cache_key,
+           response.model_dump_json(),
+           ex=3600
+        )
+
+        await redis_client.set(
+           cache_key_order,
+           response.model_dump_json(),
+           ex=3600
+        )
+
         logger.info(
             "Payment status updated successfully (payment_id=%s, status=%s)",
             payment_id,
             status
         )
 
-        return payment
+        return response
 
     except Exception:
 

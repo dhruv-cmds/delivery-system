@@ -1,15 +1,15 @@
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Restaurant, User
-from app.schemas import RestaurantCreate
+from app.schemas import RestaurantCreate, RestaurantResponse
 from app.services import notification_service
 from app.repositories import restaurant_repository
 
 from app.core import (
 
     logger,
+    redis_client,
 
     UserRole,
     RestaurantStatus,
@@ -92,6 +92,19 @@ async def get_restaurant_by_id(
         restaurant_id: int,
     ):
 
+    cache_key = f"restaurant_id:{restaurant_id}"
+
+    cached = await redis_client.get(cache_key)
+
+    if cached:
+
+        logger.info(
+            "Restaurant retrieved from Redis (restaurant_id=%s)",
+            restaurant_id
+        )
+
+        return RestaurantResponse.model_validate_json(cached)
+
     restaurant = await restaurant_repository.get_restaurant_by_id(
         db,
         restaurant_id
@@ -104,8 +117,19 @@ async def get_restaurant_by_id(
             restaurant_id
         )
         raise RestaurantNotFoundError()
+    
+    response = RestaurantResponse.model_validate(
+        restaurant,
+        from_attributes=True
+    )
 
-    return restaurant
+    await redis_client.set(
+        cache_key,
+        response.model_dump_json(),
+        ex=3600, # 1 hour
+    )
+
+    return response
 
 
 async def update_restaurant(
@@ -144,6 +168,8 @@ async def update_restaurant(
     restaurant.phone = restaurant_data.phone
     restaurant.address = restaurant_data.address
 
+    cache_key = f"restaurant_id:{restaurant_id}"
+
     try:
 
         restaurant = await restaurant_repository.persist_restaurant(
@@ -158,20 +184,41 @@ async def update_restaurant(
             notification_type=NotificationType.SYSTEM
         )
 
+        await db.commit()
+
+        response = RestaurantResponse.model_validate(
+
+        # schema has from_attributes so you can only use payment 
+        # and can use with from_attributes both works
+        # use what every you like
+
+            restaurant,
+            from_attributes=True
+        )
+
+        await redis_client.set(
+            cache_key,
+            response.model_dump_json(),
+            ex=3600 
+        )
 
         logger.info(
             "Restaurant updated successfully (restaurant_id=%s)",
             restaurant.id
         )
 
-        return restaurant
+        return response
 
     except IntegrityError:
+
+        await db.rollback()
         
         logger.exception("Database integrity error while updating restaurant")
         raise RestaurantAlreadyExistsError()
 
     except Exception:
+
+        await db.rollback()
 
         logger.exception("Unexpected error while updating restaurant")
         raise DatabaseError()
@@ -222,6 +269,8 @@ async def update_restaurant_status(
     
     restaurant.status = status
 
+    cache_key = f"restaunrat_id:{restaurant_id}"
+
     try:
 
         restaurant = await restaurant_repository.persist_restaurant(
@@ -242,17 +291,29 @@ async def update_restaurant_status(
 
         await db.commit()
 
-        logger.info(
-            "Restaurant status updated successfully (restaurant_id=%s, status=%s)",
-            restaurant.id,
-            status
+        response = RestaurantResponse.model_validate(
+            restaurant,
+            from_attributes=True
         )
 
-        return restaurant
+        await redis_client.set(
+            cache_key,
+            response.model_dump_json(),
+            ex=3600
+        )
+
+        logger.info(
+            "Restaurant status updated successfully "
+            "(restaurant_id=%s, status=%s)",
+            restaurant.id,
+            status,
+        )
+
+        return response
 
     except Exception:
 
-        await db.refresh()
+        await db.rollback()
 
         logger.exception(
             "Unexpected error while updating restaurant status"
@@ -260,7 +321,6 @@ async def update_restaurant_status(
         raise DatabaseError()
 
     
-
 async def delete_restaurant_by_id(
         db: AsyncSession,
         restaurant_id: int,
@@ -297,7 +357,6 @@ async def delete_restaurant_by_id(
 
     try:
 
-        
         await restaurant_repository.delete_restaurant(
             db,
             restaurant,
@@ -327,3 +386,31 @@ async def delete_restaurant_by_id(
         
         raise DatabaseError()
     
+    
+# Cache flow:
+#
+# 1. GET /restaurants/{id}
+#    - First checks Redis.
+#    - If cache exists, return RestaurantResponse from Redis.
+#    - If cache does not exist, fetch from DB and store in Redis.
+#
+# 2. PUT/PATCH /restaurants/{id}
+#    - Update restaurant in DB.
+#    - Update (or invalidate) Redis cache for the same restaurant_id.
+#
+# Why?
+# A future GET request may read from Redis instead of the database.
+# If we don't refresh the cache after an update, users could receive
+# stale/outdated restaurant data even though the database was updated.
+#
+# Example:
+# GET -> cache stores "Pizza House"
+# UPDATE -> DB changes name to "Pizza Palace"
+# UPDATE -> cache also changes to "Pizza Palace"
+# GET -> returns fresh cached data ("Pizza Palace")
+# 
+# Inshort:
+# User gets RestaurantResponse from cache if available.
+# If restaurant data is changed by another endpoint,
+# we refresh the cache here so the next GET request
+# receives the updated restaurant information.
