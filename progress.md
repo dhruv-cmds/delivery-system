@@ -1,6 +1,6 @@
 # Project Progress
 
-Last Updated: 2026-06-18
+Last Updated: 2026-06-19
 
 ## Project Overview
 
@@ -8,7 +8,16 @@ Food Delivery Management System is a FastAPI-based backend application designed 
 
 The project now includes complete CRUD and workflow support for users, restaurants, menus, orders, payments, delivery partners, notifications, and order tracking.
 
-Current development is focused on WebSocket integration, automated testing, load testing, frontend development, Alembic migrations, and deployment preparation.
+Current development is focused on:
+
+* WebSocket integration
+* Automated testing
+* Load testing
+* Frontend development
+* Alembic migrations
+* Deployment preparation
+* Observability and middleware experimentation
+
 
 ---
 
@@ -101,6 +110,35 @@ Features:
 * Cache expiration (TTL)
 * Reduced database queries
 * Faster read performance
+
+## Middleware Layer
+
+Implemented custom middleware architecture for learning and request lifecycle exploration.
+
+Middleware created:
+
+* Authentication middleware
+* Logging middleware
+* Metrics middleware
+
+Concepts learned:
+
+* FastAPI / Starlette middleware execution flow
+* Request-response lifecycle
+* Middleware chaining using `call_next()`
+* Request propagation through middleware stack
+* Response propagation back through middleware stack
+* Request state storage using `request.state`
+* Difference between middleware and dependency injection
+* Difference between middleware and Pydantic schema validation
+
+Current status:
+
+* Middleware implemented primarily for educational purposes
+* Authentication and authorization remain dependency-based using `Depends(get_current_user)`
+* Business logging continues through service-layer logging
+* Uvicorn access logs remain enabled
+
 
 ---
 
@@ -598,5 +636,14 @@ Planned:
 * Endpoint standardization
 * Dockerized development workflow
 * Rate limiting integration
+
+### Additional Recent Progress
+
+* Explored and implemented custom middleware
+* Learned request lifecycle and middleware execution order
+* Learned FastAPI dependency vs middleware responsibilities
+* Improved application observability understanding
+* Evaluated middleware use cases versus existing dependency-based authentication
+
 
 The backend has reached a feature-complete state for all major business domains. The primary focus moving forward is testing, real-time communication, frontend development, deployment readiness, and production hardening.

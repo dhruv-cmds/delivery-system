@@ -1,10 +1,26 @@
-
-
 # Food Delivery Management System
 
 A production-oriented food delivery backend built with FastAPI, SQLAlchemy Async ORM, MySQL, JWT authentication, role-based access control, Docker, and a service-layer architecture.
 
 The system supports restaurant management, menu management, order processing, payments, delivery partner management, notifications, and order tracking.
+
+## Screenshots
+
+### Swagger UI
+
+![Swagger](images/about.png)
+
+![Swagger](images/endpoints_1.png)
+
+![Swagger](images/endpoints_2.png)
+
+![Swagger](images/endpoints_3.png)
+
+![Swagger](images/endpoints_3.png)
+
+### Database Diagram
+
+![Schema](images/erd_diagram.png)
 
 ## Features
 
@@ -176,118 +192,6 @@ Entity relationships are implemented using SQLAlchemy ORM with proper foreign ke
 
 ---
 
-## Implemented API Modules
-
-### Authentication
-
-```text
-POST /api/auth/signup
-POST /api/auth/login
-```
-
-### Users
-
-```text
-GET /api/user
-GET /api/user/{user_id}
-GET /api/user/email/{email}
-GET /api/user/username/{username}
-```
-
-### Restaurants
-
-```text
-POST   /api/restaurant
-GET    /api/restaurant/{restaurant_id}
-PUT    /api/restaurant/{restaurant_id}
-PATCH  /api/restaurant/{restaurant_id}/status
-DELETE /api/restaurant/{restaurant_id}
-```
-
-### Menu
-
-```text
-POST   /api/menus
-GET    /api/menus/{menu_id}
-GET    /api/restaurants/{restaurant_id}/menus
-PUT    /api/menus/{menu_id}
-PATCH  /api/menus/{menu_id}/status
-DELETE /api/menus/{menu_id}
-```
-
-### Orders
-
-```text
-POST   /api/order
-GET    /api/order/{order_id}
-GET    /api/order/all
-PATCH  /api/order/{order_id}/status
-DELETE /api/order/{order_id}
-```
-
-### Payments
-
-```text
-POST   /api/order/{order_id}/payment
-GET    /api/order/{order_id}/payment
-
-GET    /api/payment/all
-GET    /api/payment/{payment_id}
-
-PATCH  /api/payment/{payment_id}/status
-```
-
-### Delivery Partners
-
-```text
-POST   /api/delivery_partner
-
-GET    /api/delivery_partner/{partner_id}
-GET    /api/delivery_partner/user/{user_id}
-GET    /api/delivery_partner/all
-
-PUT    /api/delivery_partner/{partner_id}
-PUT    /api/delivery_partner/{partner_id}/location
-
-DELETE /api/delivery_partner/{partner_id}
-```
-
-### Notifications
-
-```text
-GET    /api/notification
-GET    /api/notification/{notification_id}
-
-PATCH  /api/notification/{notification_id}/read
-PATCH  /api/notification/read-all
-
-DELETE /api/notification/{notification_id}
-```
-
-### Admin Notifications
-
-```text
-GET /api/admin/notification/all
-GET /api/admin/notification/user/{user_id}
-```
-
-### Tracking 
-
-```text
-POST /api/tracking
-
-GET  /api/tracking/order/{order_id}
-GET  /api/tracking/all
-```
-
-### Health
-
-```text
-GET /api/health
-```
-
----
-
 ## Environment Variables
 
 Create:
@@ -344,8 +248,6 @@ Database:
 127.0.0.1:3010
 ```
 
-Development environment:
-
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
@@ -400,6 +302,10 @@ uvicorn backend.app.main:app --reload
 * Rate limiting
 * Docker configuration
 * OpenAPI / Swagger documentation
+* Middleware architecture
+* Authentication middleware
+* Request logging middleware
+* Metrics middleware
 
 ### In Progress
 
@@ -411,7 +317,6 @@ uvicorn backend.app.main:app --reload
 
 * pytest test suite
 * k6 load testing
-* Redis integration
 * Real-time order tracking
 * Analytics dashboard
 * CI/CD pipeline
