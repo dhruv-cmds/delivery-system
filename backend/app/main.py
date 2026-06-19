@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from app.db import Base,engine
 
+from app.middleware import AuthMiddleware, LoggingMiddleware, MetricsMiddleware
 from app.api.routes import (
     auth,
     delivery_partner,
@@ -134,6 +135,10 @@ app = FastAPI(
     ]
 
 )
+
+app.add_middleware(AuthMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(MetricsMiddleware)
 
 app.include_router(auth.router, prefix="/api")
 
