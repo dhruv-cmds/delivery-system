@@ -1,0 +1,9 @@
+services:
+  delivery-api:
+    volumes:
+      - ../..:/app:Z
+
+networks:
+  shared-net:
+    external: true
+    name: shared-net

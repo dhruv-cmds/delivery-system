@@ -24,7 +24,7 @@ DB_NAME = os.getenv("DB_NAME")
 
 DB_HOST = os.getenv("DB_HOST", "mysql-shared")
 DB_PORT = os.getenv("DB_PORT", "3306")
-REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_HOST = os.getenv("REDIS_HOST", "redis-shared")
 
 DATABASE_URL = (
     f"mysql+aiomysql://"

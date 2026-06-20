@@ -124,7 +124,7 @@ async def get_user_by_id(
     )
     
     logger.info(
-        "User retrieved from DB and cached successfully (user_id=%s)",
+        "User retrieved from DB successfully (user_id=%s)",
         user.id
     )
 

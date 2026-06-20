@@ -2,8 +2,6 @@ from fastapi import FastAPI
 
 from contextlib import asynccontextmanager
 
-from sqlalchemy import text
-
 from app.db import Base,engine
 
 from app.middleware import AuthMiddleware, LoggingMiddleware, MetricsMiddleware
