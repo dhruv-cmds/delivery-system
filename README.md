@@ -201,40 +201,60 @@ backend/.env
 ```
 
 ```env
+COMPOSE_PROJECT_NAME=delivery-app
+
+
 ENV=docker
 
-SECRET_KEY=change-me
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+MYSQL_ROOT_PASSWORD=CHANGE_ME
+
 
 DB_USER=delivery_user
+DB_NAME=delivery
 DB_PASSWORD=delivery_password
-DB_NAME=delivery_db
+DB_PORT=3306
+DB_HOST=mysql-shared
 
-MYSQL_ROOT_PASSWORD=root_password
-MYSQL_DATABASE=delivery_db
-MYSQL_USER=delivery_user
-MYSQL_PASSWORD=delivery_password
 
-REDIS_HOST=redis
+REDIS_HOST=redis-shared
 REDIS_PORT=6379
 REDIS_DB=0
 
-```
 
-For local development:
+SECRET_KEY=mysecretkey
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=3600
 
-```env
-ENV=dev
 ```
 
 ---
 
 ## Running with Docker
 
+### Build shared containers
 ```bash
-docker compose up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
+OR
+
+```bash
+docker compose up --build (if not on SELinux or Fedora)
+```
+
+### Build api containers
+
+````bash
+cd backend/app
+
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+````
+
+OR
+```bash
+docker compose up --build (if not on SELinux or Fedora)
+````
+
 
 API:
 
@@ -246,10 +266,6 @@ Database:
 
 ```text
 127.0.0.1:3010
-```
-
-```bash
-docker compose -f docker-compose.dev.yml up --build
 ```
 
 ---
