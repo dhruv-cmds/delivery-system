@@ -43,6 +43,5 @@ uvicorn==0.44.0
 aiomysql==0.2.0
 wrapt==2.1.2
 limits==5.8.0
-asyncpg==0.29.0
 aiomysql==0.2.0
 redis==8.0.0

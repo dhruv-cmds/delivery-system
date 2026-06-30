@@ -152,23 +152,35 @@ The system supports restaurant management, menu management, order processing, pa
 │   │   ├── api/
 │   │   │   └── routes/                     # FastAPI route modules
 │   │   ├── core/                           # Config, security, constants, logging, exceptions
-│   │   ├── db/                             # Async database session and SQLAlchemy models
+│   │   ├── db/                             # Async database session 
+│   │   │   └── models/                     # SQLAlchemy models
 │   │   ├── repositories/                   # Repository layer placeholders
 │   │   ├── schemas/                        # Pydantic request/response schemas
 │   │   ├── services/                       # Business logic modules
 │   │   ├── tasks/                          # Background task placeholders
 │   │   ├── tests/                          # Test placeholders
-│   │   └── websocket/                      # Realtime event and handler placeholders
+│   │   ├── websocket/                      # Realtime event and handler placeholders
+│   │   │
+│   │   ├── docker-compose.dev.yml          # Api Container (for SELinux/Fedora etc...)
+│   │   ├── docker-compose.yml              # Api Container
+│   │   ├── lifespan.py
+│   │   └── main.py
+│   │
+│   ├──.env.example
 │   └── requirements.txt
 │
+├── db_quires/                              # Database setup tables creation and permissions 
 ├── docker/                                 # Dockerfiles   
 ├── frontend/                               # Frontend
-├── k6/                                     #Load test
+├── image/                                  # Image about project 
+├── k6/                                     # Load test
 ├── nginx/                                  # Nginx placeholder
 ├── scripts/                                # Utility script
 │
-├── docker-compose.yml
-├── docker-compose.dev.yml
+├── docker-compose.dev.yml                  # Api Container (for SELinux/Fedora etc...)
+├── docker-compose.yml                      # Api Container
+├── LICENSE
+├── progress.md
 └── README.md
 ```
 
@@ -192,69 +204,89 @@ Entity relationships are implemented using SQLAlchemy ORM with proper foreign ke
 
 ---
 
-## Environment Variables
+# ⚙️ Environment Variables
 
-Create:
+## 🏗️ Shared Infrastructure (Recommended)
 
-```text
-backend/.env
-```
+Use this configuration if you're running the separate `docker-infra` repository.
 
 ```env
 COMPOSE_PROJECT_NAME=delivery-app
 
+ENV=docker
+
+DB_HOST=shared-mysql
+DB_PORT=3306
+DB_NAME=delivery
+DB_USER=delivery_user
+DB_PASSWORD=delivery_password
+
+REDIS_HOST=shared-redis
+REDIS_PORT=6379
+REDIS_DB=1
+REDIS_PASSWORD = changeme
+
+SECRET_KEY=change_me
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+> Requires the `docker-infra` repository to be running.
+**repo**: https://github.com/Dhruv-Cmds/docker-infra
+---
+
+## 🐳 Standalone Docker (Open Source)
+
+Use this configuration when running the project with `docker-compose.oss.yml`.
+
+```env
+COMPOSE_PROJECT_NAME=delivery-app
 
 ENV=docker
 
-
-MYSQL_ROOT_PASSWORD=CHANGE_ME
-
-
-DB_USER=delivery_user
-DB_NAME=delivery
-DB_PASSWORD=delivery_password
+MYSQL_ROOTPASSWORD=chagneme
+DB_HOST=mysql
 DB_PORT=3306
-DB_HOST=mysql-shared
+DB_NAME=delivery
+DB_USER=delivery_user
+DB_PASSWORD=delivery_password
 
-
-REDIS_HOST=redis-shared
+REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_DB=0
+REDIS_DB=1
+REDIS_PASSWORD = changeme
 
-
-SECRET_KEY=mysecretkey
+SECRET_KEY=change_me
 ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=3600
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
 
+> Works without the `docker-infra` repository.
+
+## 💻 Local Development (Without Docker)
+
+```env
+COMPOSE_PROJECT_NAME=delivery-app
+
+ENV=dev
+
+MYSQL_ROOTPASSWORD=changeme
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=banking
+DB_USER=banking_user
+DB_PASSWORD=your_password
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_DB=1
+
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ---
-
-## Running with Docker
-
-### Build shared containers
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-```
-OR
-
-```bash
-docker compose up --build (if not on SELinux or Fedora)
-```
-
-### Build api containers
-
-````bash
-cd backend/app
-
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
-````
-
-OR
-```bash
-docker compose up --build (if not on SELinux or Fedora)
-````
-
 
 API:
 
@@ -289,7 +321,7 @@ pip install -r requirements.txt
 Run FastAPI:
 
 ```bash
-uvicorn backend.app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ---
