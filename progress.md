@@ -620,22 +620,48 @@ Planned:
 
 ### Completed Since Initial Setup
 
-* Restaurant management module
-* Menu management module
-* Order management module
-* Payment management module
-* Delivery partner management module
-* Notification management module
-* Tracking management module
-* Redis caching integration
-* Role-based access control improvements
-* Payment-order synchronization
-* Order visibility filtering
-* Delivery partner location updates
-* OpenAPI documentation cleanup
-* Endpoint standardization
-* Dockerized development workflow
-* Rate limiting integration
+* Async SQLAlchemy setup
+* MySQL integration
+* Redis integration
+* JWT authentication
+* Password hashing
+* Custom exception system
+* Service-layer architecture
+* Role-based access control
+* Restaurant management
+* Menu management
+* Order management
+* Payment processing
+* Delivery partner management
+* Order tracking
+* Notification management
+* Health monitoring endpoints
+* Redis caching across services
+* Rate limiting
+* Docker configuration
+* OpenAPI / Swagger documentation
+* Middleware architecture
+* Authentication middleware
+* Request logging middleware
+* Metrics middleware
+
+
+## Roadmap
+
+
+- [x] Authentication
+- [x] RBAC
+- [x] Orders
+- [x] Payments
+- [x] Notifications
+- [ ] WebSockets
+- [ ] Background tasks
+- [ ] pytest
+- [ ] k6
+- [ ] CI/CD
+- [ ] Frontend
+
+---
 
 ### Additional Recent Progress
 
